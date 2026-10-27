@@ -85,8 +85,6 @@
     "date": "Date invalide",
     "age": "L'âge doit être compris entre 21 et 90 ans",
     "passwordMin": "8 caractères minimum",
-    "passwordLetter": "Ajoutez au moins une lettre",
-    "passwordDigit": "Ajoutez au moins un chiffre",
     "passwordMatch": "Les mots de passe ne correspondent pas",
     "passwordWrong": "Mot de passe actuel incorrect",
     "tooLong": "Texte trop long",
@@ -218,7 +216,7 @@
     "vehicleNo": "Je n'ai pas de véhicule",
     "password": "Mot de passe",
     "confirmPassword": "Confirmer le mot de passe",
-    "passwordHint": "8 caractères minimum, avec lettres et chiffres",
+    "passwordHint": "8 caractères minimum",
     "strength": {
       "label": "Robustesse",
       "weak": "Faible",

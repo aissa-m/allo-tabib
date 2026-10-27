@@ -57,7 +57,7 @@ async function askPassword(): Promise<string> {
   for (;;) {
     const pw = await ask("Contraseña: ", true);
     if (!passwordSchema.safeParse(pw).success) {
-      console.log("  ✗ Mínimo 8 caracteres, con al menos una letra y un número.");
+      console.log("  ✗ Mínimo 8 caracteres.");
       continue;
     }
     if ((await ask("Repite la contraseña: ", true)) === pw) return pw;

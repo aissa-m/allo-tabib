@@ -31,9 +31,7 @@ const optionalEmail = z
 export const passwordSchema = z
   .string()
   .min(8, "passwordMin")
-  .max(100, "tooLong")
-  .regex(/[A-Za-z]/, "passwordLetter")
-  .regex(/\d/, "passwordDigit");
+  .max(100, "tooLong");
 
 const birthDate = z
   .string()
