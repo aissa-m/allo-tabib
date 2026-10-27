@@ -4,9 +4,10 @@ import { cookies } from "next/headers";
 import {
   SESSION_COOKIE,
   SESSION_MAX_AGE,
-  attemptControlLogin,
+  CONTROL_PATH,
+  checkControlPassword,
   createSessionToken,
-  getControlPath,
+  isControlEnabled,
   setSiteLocked,
   verifySessionToken,
 } from "@/lib/siteControl";
@@ -14,25 +15,14 @@ import {
 export type LoginState = { error?: string };
 
 export async function loginAction(_prev: LoginState, formData: FormData): Promise<LoginState> {
-  const path = getControlPath();
-  if (!path) return { error: "Panel desactivado." };
-  const password = String(formData.get("password") ?? "");
-  let result: Awaited<ReturnType<typeof attemptControlLogin>>;
-  try {
-    result = password ? await attemptControlLogin(password) : "invalid";
-  } catch (e) {
-    console.error("[site-control] login", e);
-    return { error: "Error del servidor (base de datos). Revisa los logs de Vercel." };
-  }
-
-  if (result === "throttled") return { error: "Demasiados intentos. Espera 15 minutos." };
-  if (result === "invalid") {
-    await new Promise((r) => setTimeout(r, 600)); // frena intentos automatizados
+  if (!isControlEnabled()) return { error: "Panel desactivado." };
+  if (!checkControlPassword(String(formData.get("password") ?? ""))) {
+    await new Promise((r) => setTimeout(r, 600));
     return { error: "Contraseña incorrecta." };
   }
 
   (await cookies()).set(SESSION_COOKIE, createSessionToken(), {
-    path,
+    path: CONTROL_PATH,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
@@ -42,8 +32,7 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
 }
 
 export async function logoutAction(): Promise<void> {
-  const path = getControlPath();
-  if (path) (await cookies()).delete({ name: SESSION_COOKIE, path });
+  (await cookies()).delete({ name: SESSION_COOKIE, path: CONTROL_PATH });
 }
 
 export async function setLockedAction(locked: boolean): Promise<{ ok: boolean }> {

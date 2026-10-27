@@ -1,17 +1,12 @@
 import NextAuth from "next-auth";
 import { NextResponse, type NextRequest } from "next/server";
 import { authConfig } from "./auth.config";
-import { CONTROL_ROUTE, getControlPath, isSiteLocked } from "./lib/siteControl";
+import { CONTROL_PATH, isSiteLocked } from "./lib/siteControl";
 import { LOCKED_HTML } from "./lib/siteControl/lockedPage";
 
 const { auth } = NextAuth(authConfig);
 
 const ROLE_PATHS = ["/admin", "/pro", "/login", "/register"];
-
-/** Respuesta de 404 normal de la app (la ruta interna del panel no debe delatarse). */
-function notFound(req: NextRequest) {
-  return NextResponse.rewrite(new URL("/__not-found", req.nextUrl));
-}
 
 /** Web bloqueada: 503 sin caché. Las API responden JSON; el resto, la pantalla de aviso. */
 function lockedResponse(pathname: string) {
@@ -21,17 +16,15 @@ function lockedResponse(pathname: string) {
 }
 
 /**
- * 1. Panel oculto (SITE_CONTROL_PATH): siempre accesible, se reescribe a la ruta interna.
+ * 1. Panel de bloqueo (CONTROL_PATH): siempre accesible.
  * 2. Web bloqueada: todo lo demás (páginas, API, login, admin, ficheros) devuelve 503.
  * 3. /pro/* solo PROFESSIONAL, /admin/* solo ADMIN. Las API comprueban el rol por su cuenta.
  */
 export default auth(async (req) => {
   const { pathname } = req.nextUrl;
 
-  const controlPath = getControlPath();
-  if (controlPath && pathname === controlPath) return NextResponse.rewrite(new URL(CONTROL_ROUTE, req.nextUrl));
+  if (pathname === CONTROL_PATH) return NextResponse.next();
   if (await isSiteLocked()) return lockedResponse(pathname);
-  if (pathname === CONTROL_ROUTE || pathname.startsWith(`${CONTROL_ROUTE}/`)) return notFound(req);
   if (!ROLE_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return NextResponse.next();
 
   const role = req.auth?.user?.role;
@@ -58,6 +51,6 @@ export default auth(async (req) => {
 export const config = {
   // Runtime Node: el middleware lee el estado de bloqueo con Prisma.
   runtime: "nodejs",
-  // Todo salvo los assets compilados de Next (los necesita el panel oculto para cargarse).
+  // Todo salvo los assets compilados de Next (los necesita el panel de bloqueo para cargarse).
   matcher: ["/((?!_next/static|_next/webpack-hmr|__nextjs).*)"],
 };

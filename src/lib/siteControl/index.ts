@@ -1,33 +1,26 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/prisma";
-import { isValidHash, verifyPassword } from "./password";
 
 /**
  * Panel oculto para bloquear/desbloquear toda la web.
  *
- * - La URL pública del panel es SITE_CONTROL_PATH (secreta, solo en variables de entorno).
- *   El middleware la reescribe a CONTROL_ROUTE, que da 404 si se pide directamente.
- * - La contraseña es SITE_CONTROL_PASSWORD_HASH (generada con `npm run site-control -- hash`).
- *   Es independiente de NextAuth: el panel funciona aunque la web (login incluido) esté bloqueada.
- * - Si falta alguna de las dos variables, el panel no existe.
+ * - Ruta fija CONTROL_PATH, siempre accesible aunque la web esté bloqueada.
+ * - Contraseña en claro en SITE_CONTROL_PASSWORD. Independiente de NextAuth.
+ * - Si falta la contraseña, el panel da 404.
  */
-export const CONTROL_ROUTE = "/site-control";
+export const CONTROL_PATH = "/access-control";
 export const SESSION_COOKIE = "sc_session";
 export const SESSION_MAX_AGE = 8 * 60 * 60; // segundos
 
-const MAX_FAILED_LOGINS = 5;
-const LOGIN_BLOCK_MS = 15 * 60 * 1000;
 /** Cada instancia del servidor reutiliza el estado leído durante este tiempo. */
 const CACHE_TTL_MS = 5000;
 
-export function getControlPath(): string | null {
-  const raw = process.env.SITE_CONTROL_PATH?.trim();
-  // Hash mal copiado (cortado, con comillas o con "SITE_CONTROL_PASSWORD_HASH=" delante): panel desactivado.
-  if (!raw || !isValidHash(process.env.SITE_CONTROL_PASSWORD_HASH) || !process.env.AUTH_SECRET) return null;
-  const path = `/${raw.replace(/^\/+|\/+$/g, "")}`;
-  // Ruta demasiado corta o que choca con la interna: panel desactivado.
-  if (path.length < 8 || path.startsWith(CONTROL_ROUTE)) return null;
-  return path;
+export function isControlEnabled(): boolean {
+  return !!controlPassword() && !!process.env.AUTH_SECRET;
+}
+
+function controlPassword(): string | undefined {
+  return process.env.SITE_CONTROL_PASSWORD?.trim() || undefined;
 }
 
 // ── Estado de bloqueo ────────────────────────────────────────────────────────
@@ -59,34 +52,19 @@ export async function setSiteLocked(locked: boolean): Promise<void> {
 
 // ── Login del panel ──────────────────────────────────────────────────────────
 
-/** Comprueba la contraseña; tras MAX_FAILED_LOGINS fallos seguidos, rechaza cualquier intento un rato. */
-export async function attemptControlLogin(password: string): Promise<"ok" | "invalid" | "throttled"> {
-  const hash = process.env.SITE_CONTROL_PASSWORD_HASH;
-  if (!hash) return "invalid";
-  const row = await prisma.siteSetting.upsert({ where: { id: 1 }, update: {}, create: { id: 1 } });
-  if (row.loginBlockedUntil && row.loginBlockedUntil > new Date()) return "throttled";
-
-  if (await verifyPassword(password, hash)) {
-    if (row.failedLogins || row.loginBlockedUntil) {
-      await prisma.siteSetting.update({ where: { id: 1 }, data: { failedLogins: 0, loginBlockedUntil: null } });
-    }
-    return "ok";
-  }
-
-  const failed = row.failedLogins + 1;
-  const blocked = failed >= MAX_FAILED_LOGINS;
-  await prisma.siteSetting.update({
-    where: { id: 1 },
-    data: blocked ? { failedLogins: 0, loginBlockedUntil: new Date(Date.now() + LOGIN_BLOCK_MS) } : { failedLogins: failed },
-  });
-  return blocked ? "throttled" : "invalid";
+export function checkControlPassword(password: string): boolean {
+  const expected = controlPassword();
+  if (!expected) return false;
+  const a = Buffer.from(password);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
 }
 
 // ── Sesión (cookie firmada "<caducidad>.<hmac>") ─────────────────────────────
 
-/** La clave depende también del hash: cambiar la contraseña invalida las sesiones abiertas. */
+/** La clave depende también de la contraseña: cambiarla invalida las sesiones abiertas. */
 function sign(payload: string): string {
-  return createHmac("sha256", `${process.env.AUTH_SECRET}:${process.env.SITE_CONTROL_PASSWORD_HASH}`)
+  return createHmac("sha256", `${process.env.AUTH_SECRET}:${controlPassword()}`)
     .update(`site-control:${payload}`)
     .digest("base64url");
 }
@@ -97,7 +75,7 @@ export function createSessionToken(): string {
 }
 
 export function verifySessionToken(token: string | undefined): boolean {
-  if (!token || !getControlPath()) return false;
+  if (!token || !isControlEnabled()) return false;
   const [exp, sig] = token.split(".");
   if (!exp || !sig || !(Number(exp) > Date.now())) return false;
   const expected = Buffer.from(sign(exp));

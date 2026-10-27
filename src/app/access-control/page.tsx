@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { SESSION_COOKIE, getControlPath, readSiteLocked, verifySessionToken } from "@/lib/siteControl";
+import { SESSION_COOKIE, isControlEnabled, readSiteLocked, verifySessionToken } from "@/lib/siteControl";
 import { ControlLogin, ControlPanel } from "./ControlPanel";
 
 export const dynamic = "force-dynamic";
@@ -12,9 +12,8 @@ export const metadata: Metadata = {
   referrer: "no-referrer",
 };
 
-/** Solo se llega aquí a través de SITE_CONTROL_PATH (el middleware da 404 a la ruta directa). */
 export default async function SiteControlPage() {
-  if (!getControlPath()) notFound();
+  if (!isControlEnabled()) notFound();
   const authed = verifySessionToken((await cookies()).get(SESSION_COOKIE)?.value);
   let locked: boolean | null = null;
   if (authed) {
