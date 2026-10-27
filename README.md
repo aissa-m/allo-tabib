@@ -31,6 +31,26 @@ npm run dev                   # http://localhost:3000
 
 Producción: `npm run build && npm start`.
 
+## Despliegue en Vercel
+
+1. **Base de datos (Supabase)**: crea el proyecto en la región **West EU (Paris)**, la misma que las funciones de Vercel (`vercel.json` → `cdg1`). En *Connect* hay dos URLs:
+   - **Transaction pooler** (puerto 6543) → `DATABASE_URL` en Vercel, añadiendo `?pgbouncer=true&connection_limit=1`.
+   - **Session pooler** (puerto 5432) → solo para aplicar migraciones desde tu ordenador.
+
+   Las tablas llevan RLS activado sin políticas (migración `enable_rls`): la API REST de Supabase no puede leerlas; Prisma sí, porque conecta como dueño.
+2. **Migraciones y datos iniciales** (desde tu ordenador, con la URL *session pooler* de Supabase):
+   ```bash
+   export DATABASE_URL="postgresql://…:5432/postgres"   # en PowerShell: $env:DATABASE_URL="…"
+   npx prisma migrate deploy
+   SEED_DEMO=false npm run seed   # solo zonas y especialidades: sin admin de prueba ni profesionales ficticios
+   npm run create-admin           # admins reales
+   ```
+   La variable de la terminal tiene prioridad sobre `.env`; cierra esa terminal al terminar para no tocar producción sin querer.
+   ⚠️ No ejecutes el seed sin `SEED_DEMO=false` contra producción: crea 30 profesionales ficticios y el admin `+22200000000 / admin1234`.
+3. **Variables de entorno en Vercel**: `DATABASE_URL`, `AUTH_SECRET` (uno nuevo, distinto del local: `npx auth secret`), `AUTH_TRUST_HOST=true`, `RESEND_API_KEY` + `EMAIL_FROM` (correo de «mot de passe oublié»; verifica el dominio del remitente en Resend), `APP_URL` (la URL pública, p. ej. `https://allotabib.mr`) y, si se usa, `SITE_CONTROL_PATH` + `SITE_CONTROL_PASSWORD_HASH`. Las `NEXT_PUBLIC_MAP_*` son opcionales.
+4. **Fotos**: en Vercel el disco no es persistente; las fotos se guardan automáticamente en PostgreSQL (tabla `StoredFile`, driver `db`). No hace falta configurar nada.
+5. Vercel sirve la web con HTTPS, que la geolocalización necesita.
+
 > El `docker-compose.yml` expone PostgreSQL en el puerto **5433** (no 5432), para no chocar con un PostgreSQL local ya instalado.
 
 ## Credenciales de prueba
@@ -69,8 +89,9 @@ Los datos de ejemplo están pensados para probar todos los estados: 15 disponibl
 | `NEXT_PUBLIC_MAP_STYLE_LIGHT` / `NEXT_PUBLIC_MAP_STYLE_DARK` | URL del estilo de mapa claro / oscuro (por defecto CARTO Positron / Dark Matter, sin API key). Se pueden cambiar a MapTiler o Stadia sin tocar código. |
 | `NEXT_PUBLIC_MAP_STYLE_VOYAGER` | Estilo «Couleurs» del selector de mapa (por defecto CARTO Voyager). |
 | `NEXT_PUBLIC_MAP_SATELLITE_TILES` | Teselas de la vista «Satellite» (por defecto Esri World Imagery). Para uso comercial, mejor MapTiler o Mapbox con clave. |
-| `STORAGE_DRIVER` | `local` (único implementado). |
-| `SEED_ADMIN_PHONE` / `SEED_ADMIN_PASSWORD` | Credenciales del admin que crea el seed. |
+| `STORAGE_DRIVER` | `local` (`public/uploads`) o `db` (PostgreSQL). Vacío: `db` en Vercel y `local` en el resto. |
+| `SEED_DEMO` | `false` en producción: el seed solo crea zonas y especialidades. |
+| `SEED_ADMIN_PHONE` / `SEED_ADMIN_PASSWORD` | Credenciales del admin de prueba que crea el seed (no con `SEED_DEMO=false`). |
 
 ## Zonas (moughataas)
 
@@ -122,15 +143,24 @@ src/
 | `GET /api/admin/professionals?q=&type=&specialty=&zone=&available=&page=&sort=` | ADMIN |
 | `GET /api/admin/professionals/[id]` | ADMIN |
 | `GET /api/zones`, `GET /api/specialties?type=` | público |
+| `POST /api/password/forgot` (`{ email }`), `POST /api/password/reset` (`{ token, password, confirmPassword }`) | público |
 | `GET /api/files/[name]` (fotos) | con sesión |
 
-Todas las rutas validan con zod. Los datos y el teléfono de los profesionales solo se devuelven al admin (y a cada profesional los suyos).
+Todas las rutas validan con zod. El login bloquea la cuenta 15 min tras 5 contraseñas incorrectas seguidas.
+
+### Contraseña olvidada
+
+En el login, «Mot de passe oublié ?» lleva a `/forgot-password`: se escribe el email de la cuenta y llega un enlace a `/reset-password?token=…` (válido 1 h, un solo uso; pedir otro anula el anterior; máx. 3 correos por cuenta y hora). La respuesta es siempre la misma, exista o no el email. En la BD solo se guarda el hash del token. Al cambiar la contraseña se desbloquea la cuenta si estaba bloqueada por intentos.
+
+- Solo funciona para cuentas **con email** (en el registro es opcional). Sin email, la página remite al número del centro de llamadas.
+- Los admins pueden tener email: `npm run create-admin` lo pide (opcional).
+- En local, sin `RESEND_API_KEY`, el correo (con el enlace) se escribe en la consola de `npm run dev`. Los datos y el teléfono de los profesionales solo se devuelven al admin (y a cada profesional los suyos).
 
 ## Decisiones tomadas
 
 - **Idioma por cookie** (`NEXT_LOCALE`) en lugar de prefijo en la URL: así las rutas `/pro` y `/admin` y el middleware de roles son más simples. Francés por defecto y árabe con `dir="rtl"` completo.
 - **Versiones fijadas**: Next 15.5, Prisma 6, Tailwind 3.4 (con `tailwind.config.ts`, como se pidió), MapLibre 5 y zod 3. Las majors más recientes (Prisma 7, Tailwind 4, etc.) cambian APIs.
-- **Fotos**: `sharp` las recorta en cuadrado, las reduce a un máximo de 600×600 y las guarda en WebP en `public/uploads/`. Se sirven por `/api/files/[name]` con sesión obligatoria (no son públicas, y así también funcionan con `next start`, que no sirve ficheros añadidos a `public/` después del build). Toda la E/S pasa por `src/lib/storage.ts`: para usar S3, implementa otro `StorageDriver`.
+- **Fotos**: `sharp` las recorta en cuadrado, las reduce a un máximo de 600×600 y las guarda en WebP en `public/uploads/` (driver `local`) o en PostgreSQL (driver `db`, el de Vercel; ~40 KB por foto). Se sirven por `/api/files/[name]` con sesión obligatoria (no son públicas, y así también funcionan con `next start`, que no sirve ficheros añadidos a `public/` después del build). Toda la E/S pasa por `src/lib/storage.ts`: para usar S3, implementa otro `StorageDriver`.
 - **Avatares del seed**: generados (silueta + iniciales), sin fotos de personas reales.
 - **WhatsApp**: si el profesional no indicó un número de WhatsApp, el botón usa su teléfono principal.
 - **Lista ↔ mapa (estilo Airbnb)**: por defecto la lista se actualiza al mover el mapa. Si se desactiva "Mettre à jour en déplaçant la carte", aparece el botón **"Rechercher dans cette zone"**. Al buscar una moughataa, la lista muestra los profesionales de esa zona, ordenados por distancia a su centro.

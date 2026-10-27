@@ -22,11 +22,15 @@ function readPref(): ThemePref {
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [pref, setPrefState] = useState<ThemePref>("system");
   const [systemDark, setSystemDark] = useState(false);
+  // Hasta leer la preferencia guardada no se toca la clase "dark" que ya puso themeInitScript
+  // (si no, el primer render la quitaba y la página parpadeaba en claro).
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setPrefState(readPref());
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     setSystemDark(mq.matches);
+    setReady(true);
     const onChange = (e: MediaQueryListEvent) => setSystemDark(e.matches);
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
@@ -35,8 +39,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const resolved = pref === "system" ? (systemDark ? "dark" : "light") : pref;
 
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", resolved === "dark");
-  }, [resolved]);
+    if (ready) document.documentElement.classList.toggle("dark", resolved === "dark");
+  }, [resolved, ready]);
 
   const setPref = useCallback((p: ThemePref) => {
     setPrefState(p);

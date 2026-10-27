@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { Camera, Check, ImagePlus, ZoomIn } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import { toast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
 
 /** Recorta la imagen al área elegida y devuelve un JPEG cuadrado (máx. 1000 px; el servidor lo reduce a 600×600 WebP). */
@@ -38,6 +39,7 @@ type Props = {
 /** Foto de perfil con recorte cuadrado y vista previa. */
 export function PhotoPicker({ value, onChange, error, busy }: Props) {
   const t = useTranslations("fields");
+  const tErr = useTranslations("errors");
   const inputRef = useRef<HTMLInputElement>(null);
   const [source, setSource] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -53,12 +55,21 @@ export function PhotoPicker({ value, onChange, error, busy }: Props) {
 
   const onComplete = useCallback((_: Area, px: Area) => setArea(px), []);
 
+  const close = () => {
+    if (source) URL.revokeObjectURL(source);
+    setSource(null);
+  };
+
   const apply = async () => {
     if (!source || !area) return;
-    const blob = await cropToBlob(source, area);
-    onChange(blob, URL.createObjectURL(blob));
-    URL.revokeObjectURL(source);
-    setSource(null);
+    try {
+      const blob = await cropToBlob(source, area);
+      onChange(blob, URL.createObjectURL(blob));
+    } catch {
+      // Formato que el navegador no sabe abrir (p. ej. HEIC en Android/Windows)
+      toast.error(tErr("photoFormat"));
+    }
+    close();
   };
 
   return (
@@ -107,7 +118,7 @@ export function PhotoPicker({ value, onChange, error, busy }: Props) {
         }}
       />
 
-      <Modal open={!!source} onClose={() => setSource(null)} title={t("cropTitle")}>
+      <Modal open={!!source} onClose={close} title={t("cropTitle")}>
         {source && (
           <div className="space-y-4">
             <div className="relative h-72 overflow-hidden rounded-2xl bg-black/80">

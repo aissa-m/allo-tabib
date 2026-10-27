@@ -67,7 +67,7 @@ export const stepProfessionalSchema = z.object({
   specialtyId: z.coerce.number({ message: "required" }).int().positive("required"),
   yearsExperience: z.coerce.number({ message: "number" }).int("number").min(0, "number").max(60, "number"),
   workplace: z.string().trim().max(120, "tooLong").default(""),
-  languages: z.array(z.enum(LANGUAGES)).min(1, "languages"),
+  languages: z.array(z.enum(LANGUAGES)).min(1, "languages").max(LANGUAGES.length, "languages"),
   bio: z.string().trim().max(300, "bioMax").default(""),
 });
 
@@ -114,10 +114,24 @@ export type PasswordChangeInput = z.input<typeof passwordChangeSchema>;
 
 export const loginSchema = z.object({
   // Solo el prefijo "+222" (sin número) cuenta como vacío
-  identifier: z.string().trim().min(3, "required").refine((v) => v.replace(/[\s+]/g, "") !== "222", "required"),
-  password: z.string().min(1, "required"),
+  identifier: z.string().trim().min(3, "required").max(120, "tooLong").refine((v) => v.replace(/[\s+]/g, "") !== "222", "required"),
+  password: z.string().min(1, "required").max(100, "tooLong"),
 });
 export type LoginInput = z.input<typeof loginSchema>;
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().min(1, "required").max(120, "tooLong").email("email"),
+});
+export type ForgotPasswordInput = z.input<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().regex(/^[A-Za-z0-9_-]{43}$/, "resetInvalid"),
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((d) => d.password === d.confirmPassword, { message: "passwordMatch", path: ["confirmPassword"] });
+export type ResetPasswordInput = z.input<typeof resetPasswordSchema>;
 
 export const availabilitySchema = z.object({ available: z.boolean() });
 
@@ -136,6 +150,7 @@ const boolParam = z
 
 const csvInts = z
   .string()
+  .max(200)
   .optional()
   .transform((v) => (v ? v.split(",").map(Number).filter((n) => Number.isInteger(n) && n > 0) : []));
 

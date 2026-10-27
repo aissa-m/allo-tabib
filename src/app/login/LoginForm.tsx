@@ -23,7 +23,7 @@ export function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const [show, setShow] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState<false | "invalid" | "locked">(false);
   // Hasta que React hidrata el formulario, el botón queda desactivado: así un envío temprano
   // (conexión lenta) nunca hace un envío nativo con la contraseña en la URL.
   const [hydrated, setHydrated] = useState(false);
@@ -47,7 +47,7 @@ export function LoginForm() {
     setFailed(false);
     const res = await signIn("credentials", { ...data, redirect: false });
     if (!res || res.error) {
-      setFailed(true);
+      setFailed(res?.code === "locked" ? "locked" : "invalid");
       return;
     }
     const session = await getSession();
@@ -95,10 +95,15 @@ export function LoginForm() {
             }
             {...register("password")}
           />
+          <div className="-mt-2 flex justify-end">
+            <Link href="/forgot-password" className="text-[13px] font-medium text-slate underline-offset-4 hover:underline">
+              {t("login.forgot")}
+            </Link>
+          </div>
           {failed && (
             <p role="alert" className="flex items-center gap-2 rounded-xl bg-terra/10 px-3 py-2.5 text-sm text-terra">
               <AlertCircle size={16} strokeWidth={1.5} aria-hidden />
-              {t("errors.invalidCredentials")}
+              {failed === "locked" ? t("errors.accountLocked") : t("errors.invalidCredentials")}
             </p>
           )}
           <Button type="submit" block size="lg" icon={LogIn} loading={isSubmitting} disabled={!hydrated}>

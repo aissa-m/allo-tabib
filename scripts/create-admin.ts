@@ -65,6 +65,22 @@ async function askPassword(): Promise<string> {
   }
 }
 
+/** Email opcional: permite usar «Mot de passe oublié». Enter deja el actual (o ninguno). */
+async function askEmail(userId: string | undefined, current: string | null): Promise<string | null> {
+  for (;;) {
+    const hint = current ? ` [${current}]` : " (opcional, para recuperar la contraseña)";
+    const raw = (await ask(`Email${hint}: `)).trim().toLowerCase();
+    if (!raw) return current;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw)) {
+      console.log("  ✗ Email no válido.");
+      continue;
+    }
+    const taken = await prisma.user.findFirst({ where: { email: raw, NOT: userId ? { id: userId } : undefined } });
+    if (!taken) return raw;
+    console.log("  ✗ Ese email ya lo usa otra cuenta.");
+  }
+}
+
 async function yes(question: string): Promise<boolean> {
   return ["s", "si", "sí", "y"].includes((await ask(`${question} (s/n): `)).trim().toLowerCase());
 }
@@ -83,10 +99,11 @@ async function createOne(): Promise<void> {
   }
 
   const passwordHash = await bcrypt.hash(await askPassword(), 10);
+  const email = await askEmail(existing?.id, existing?.email ?? null);
   await prisma.user.upsert({
     where: { phone },
-    update: { role: "ADMIN", passwordHash },
-    create: { role: "ADMIN", phone, passwordHash },
+    update: { role: "ADMIN", passwordHash, email },
+    create: { role: "ADMIN", phone, passwordHash, email },
   });
   console.log(existing ? `  ✓ Contraseña actualizada para ${phone}` : `  ✓ Admin creado: ${phone}`);
 }

@@ -28,8 +28,25 @@ model User {
   phone        String        @unique
   email        String?       @unique
   passwordHash String
+  /// Intentos de login fallidos seguidos; al llegar al límite la cuenta se bloquea un rato.
+  failedLogins Int           @default(0)
+  lockedUntil  DateTime?
   createdAt    DateTime      @default(now())
   professional Professional?
+  resetTokens  PasswordResetToken[]
+}
+
+/// Enlaces de "mot de passe oublié". Solo se guarda el hash SHA-256 del token; caduca y es de un solo uso.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }
 
 model Professional {
@@ -90,6 +107,14 @@ model Zone {
   polygon       Json
   homeOf        Professional[] @relation("HomeZone")
   currentOf     Professional[] @relation("CurrentZone")
+}
+
+/// Fotos subidas (driver de almacenamiento "db"): en Vercel el disco no es persistente.
+model StoredFile {
+  name        String   @id
+  contentType String
+  data        Bytes
+  createdAt   DateTime @default(now())
 }
 
 /// Fila única (id = 1) con el estado global de la web, gestionado desde el panel oculto.

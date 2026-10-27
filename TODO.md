@@ -5,18 +5,23 @@ Registro de lo hecho y lo pendiente. Los puntos están numerados para poder refe
 ## Pendiente
 
 1. [ ] **Probar el selector de mapas dentro de la app**: el código compila y los estilos se han comprobado fuera de la app (miniaturas y satélite híbrido sin errores). Falta la prueba completa en el navegador, que no se pudo hacer porque Docker se cayó (ver P2).
-2. [ ] **Docker Desktop caído y disco casi lleno**: el motor de Docker responde con error 500, así que PostgreSQL no está accesible. El disco C: está al 98 % (11 GB libres). Liberar espacio y reiniciar Docker Desktop.
+2. [x] ~~Docker Desktop caído~~: resuelto (2026-10-27, el contenedor `homemed_db` responde). Vigilar el espacio en disco.
 3. [ ] **Error de hidratación intermitente (React #418)**: solo en producción, en la parte común a todas las páginas (layout), entre 0 y 7 de cada 30 cargas. React lo corrige solo y no se nota nada. No aparece en desarrollo. Probado sin éxito: metadatos bloqueantes (`htmlLimitedBots`).
-4. [ ] **Despliegue con HTTPS**: obligatorio para la geolocalización en producción.
+4. [ ] **Despliegue en Vercel** (da HTTPS, obligatorio para la geolocalización): pasos en el README («Despliegue en Vercel»). Clave: `prisma migrate deploy`, seed con `SEED_DEMO=false`, `npm run create-admin` y un `AUTH_SECRET` nuevo.
 5. [ ] **Polígonos oficiales de las moughataas**: los actuales son aproximados (`prisma/seed/zones.geojson`).
 6. [ ] **Imagen de satélite en producción**: Esri World Imagery es gratuita con atribución, pero su uso comercial requiere una cuenta de ArcGIS. Alternativas: MapTiler Satellite o Mapbox (con clave). Se cambia con `NEXT_PUBLIC_MAP_SATELLITE_TILES`.
-7. [ ] **Fotos en S3**: implementar otro `StorageDriver` en `src/lib/storage.ts` si se despliega en varias instancias o sin disco persistente.
+7. [x] ~~Fotos en S3~~: resuelto con el driver `db` (fotos en PostgreSQL, por defecto en Vercel). S3 / Vercel Blob solo si llega a haber miles de profesionales.
 8. [ ] **Tests en el repositorio**: los tests E2E (API + Playwright) se han ejecutado fuera del proyecto; conviene moverlos a `tests/` con un script `npm test`.
 9. [ ] **Configuración de Prisma**: `package.json#prisma` está obsoleto (aviso de Prisma 6); migrar a `prisma.config.ts`.
 10. [ ] **Nombres internos**: la base de datos, el contenedor (`homemed_db`) y la carpeta del proyecto siguen llamándose «homemed». No se ve en la web; se puede cambiar más adelante (requiere migrar los datos).
 11. [ ] **Probar en el navegador el mapa con todos los profesionales** (H6): compila y pasa el lint, pero falta verlo en la app con datos (Docker, ver P2).
 12. [ ] **Verificación de profesionales en la app**: la portada explica que verificamos a cada profesional (persona real, médico/enfermero), pero la app no tiene ese paso: no hay campo «verificado» ni pantalla para aprobar en el admin, y un profesional recién registrado ya aparece en el mapa.
-13. [ ] **Número de contacto real**: la portada usa `+222 22 33 44 11` (`CONTACT_PHONE` en `src/lib/constants.ts`); cambiarlo por el definitivo.
+13. [x] ~~Número de contacto real~~: `+222 49 06 00 00` (`CONTACT_PHONE`). Revisar si el manual PDF (`docs/`) lleva el número antiguo.
+14. [ ] **Gestión de profesionales en el admin**: el admin no puede desactivar ni borrar una cuenta (perfil falso, baja, número cambiado). Hoy solo se puede hacer en la BD. Va unido a P12.
+15. [ ] **Restablecer contraseña sin email**: la recuperación por correo ya existe (H10), pero quien se registró sin email depende de que se la cambien en la BD. Que el admin pueda ponerle una provisional. Configurar Resend (`RESEND_API_KEY`, `EMAIL_FROM` con dominio verificado) antes de la entrega.
+16. [ ] **Sesiones tras cambiar la contraseña**: con JWT, las sesiones abiertas en otros dispositivos siguen válidas hasta 30 días. Añadir una versión de sesión en `User` y comprobarla.
+17. [ ] **Registro sin límite**: `/api/register` es público y no tiene límite por IP; alguien podría crear cuentas en masa. Añadir un límite (p. ej. Vercel Firewall / rate limit) si se ve abuso.
+18. [ ] **Dependencias con avisos pendientes** (`npm audit`): `maplibre-gl` 5 (XSS en `setHTML`; la app no lo usa, los popups son React), `zod` 3 (memoria con colecciones enormes; mitigado con límites `.max()`), `deepmerge-ts` (vía Prisma CLI) y `fast-uri`. Requieren saltos de versión mayor (MapLibre 6, zod 4, Prisma 7).
 
 ## Ideas (no pedidas)
 
@@ -25,6 +30,23 @@ Registro de lo hecho y lo pendiente. Los puntos están numerados para poder refe
 3. Aviso al profesional cuando lleve muchas horas disponible (antes de la desconexión automática de las 6 h).
 
 ## Hecho
+
+### H10 — 2026-10-27 — Contraseña olvidada y número de contacto
+1. [x] Número del centro de llamadas: **+222 49 06 00 00**.
+2. [x] «Mot de passe oublié ?» por correo: `/forgot-password` → correo bilingüe (fr/ar) con enlace a `/reset-password` (1 h, un solo uso, solo se guarda el hash; máx. 3 por cuenta y hora; misma respuesta exista o no el email; envío tras responder). Envío con Resend; en local sin clave, en la consola. Migración `password_reset`.
+3. [x] `npm run create-admin` pide un email opcional para que los admins también puedan recuperar la contraseña.
+4. [x] Preparado para Supabase + Vercel: funciones en París (`vercel.json`, `cdg1`), RLS en todas las tablas (migración `enable_rls`) y pasos en el README.
+
+### H9 — 2026-10-27 — Revisión antes de la entrega
+1. [x] **Fotos en Vercel**: nuevo driver `db` en `src/lib/storage.ts` (tabla `StoredFile`, migración `stored_file_login_throttle`). Con el driver `local`, en Vercel las fotos se perdían o fallaba la subida (disco de solo lectura). El seed también guarda los avatares en la BD con ese driver.
+2. [x] **Login con límite de intentos**: 5 fallos seguidos → cuenta bloqueada 15 min, con mensaje propio («Trop de tentatives…»). Con un número inexistente se tarda lo mismo (no se puede averiguar qué números están registrados).
+3. [x] **Seed seguro para producción**: `SEED_DEMO=false` solo crea zonas y especialidades (antes creaba siempre 30 perfiles ficticios y el admin `admin1234`, y reseteaba su contraseña en cada ejecución).
+4. [x] **Dependencias**: Next 15.5.28 (corrige un RCE crítico en el optimizador de imágenes y un DoS en Server Actions) y sharp 0.35.5 (CVEs de libvips/libheif; procesa las fotos subidas).
+5. [x] **Cabeceras de seguridad**: `X-Frame-Options`, `nosniff`, `Referrer-Policy`, `Permissions-Policy` (geolocalización solo para la propia web), HSTS; sin `X-Powered-By`.
+6. [x] Límites en la validación (idiomas, filtros, login) y `limitInputPixels` en sharp contra imágenes gigantes.
+7. [x] **Parpadeo del tema oscuro**: `ThemeProvider` quitaba la clase `dark` en el primer render; ahora espera a leer la preferencia.
+8. [x] Avatar: si una foto fallaba, la nueva tampoco se mostraba. Recorte de foto: aviso si el navegador no puede abrir la imagen (p. ej. HEIC).
+9. [x] README: sección «Despliegue en Vercel».
 
 ### H8 — 2026-10-17 — Portada nueva
 1. [x] Portada con el número de contacto en grande (bloque coral con Appeler / WhatsApp), sección **pacientes** (3 pasos: llamas → buscamos al profesional → viene a casa, y banda azul con el número) y sección **sanitarios** con nuestra forma de trabajar en 5 pasos: registro → verificación → activar disponibilidad (solo se contacta a los disponibles) → te llamamos y propones sí/no (con ejemplo de llamada) → cuantas más visitas aceptas, más te llamamos.

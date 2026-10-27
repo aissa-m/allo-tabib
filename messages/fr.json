@@ -95,12 +95,15 @@
     "bioMax": "300 caractères maximum",
     "photo": "Ajoutez une photo de profil",
     "photoSize": "Photo trop lourde (8 Mo max.)",
+    "photoFormat": "Impossible de lire cette image. Choisissez une photo JPEG ou PNG.",
     "phoneTaken": "Ce numéro est déjà enregistré",
     "emailTaken": "Cet e-mail est déjà enregistré",
     "nniTaken": "Ce NNI est déjà enregistré",
     "server": "Erreur du serveur. Réessayez.",
     "invalidCredentials": "Identifiants incorrects",
-    "network": "Problème de connexion"
+    "accountLocked": "Trop de tentatives. Réessayez dans 15 minutes.",
+    "network": "Problème de connexion",
+    "resetInvalid": "Ce lien n'est plus valable. Demandez-en un nouveau."
   },
   "home": {
     "title": "Un médecin ou un infirmier chez vous, en un seul appel",
@@ -154,7 +157,8 @@
     "noAccount": "Pas encore de compte ?",
     "registerLink": "Créer un compte professionnel",
     "showPassword": "Afficher le mot de passe",
-    "hidePassword": "Masquer le mot de passe"
+    "hidePassword": "Masquer le mot de passe",
+    "forgot": "Mot de passe oublié ?"
   },
   "register": {
     "title": "Inscription professionnelle",
@@ -394,5 +398,23 @@
       "dark": "Sombre",
       "satellite": "Satellite"
     }
+  },
+  "password": {
+    "forgotTitle": "Mot de passe oublié",
+    "forgotSubtitle": "Indiquez l'e-mail de votre compte : nous vous enverrons un lien pour choisir un nouveau mot de passe.",
+    "email": "E-mail",
+    "send": "Envoyer le lien",
+    "sentTitle": "Vérifiez votre boîte e-mail",
+    "sentBody": "Si un compte utilise {email}, vous allez recevoir un lien valable 1 heure. Pensez à regarder dans les spams.",
+    "noEmail": "Pas d'e-mail sur votre compte ? Appelez-nous au <phone>{number}</phone>.",
+    "backToLogin": "Retour à la connexion",
+    "resetTitle": "Nouveau mot de passe",
+    "resetSubtitle": "Choisissez un nouveau mot de passe pour votre compte.",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "save": "Enregistrer le mot de passe",
+    "done": "Mot de passe modifié. Vous pouvez vous connecter.",
+    "invalidTitle": "Lien invalide ou expiré",
+    "requestNew": "Demander un nouveau lien"
   }
 }

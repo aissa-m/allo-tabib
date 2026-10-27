@@ -1,7 +1,7 @@
 /** Configuración centralizada de la aplicación (sin dependencias de servidor). */
 
 /** Número del centro de llamadas (llamadas y WhatsApp), mostrado en la portada. */
-export const CONTACT_PHONE = "+22222334411";
+export const CONTACT_PHONE = "+22249060000";
 
 export const NKC_CENTER = { lat: 18.0858, lng: -15.9785 } as const;
 export const NKC_ZOOM = 12;

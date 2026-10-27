@@ -3,11 +3,13 @@ import { randomUUID } from "crypto";
 import { mkdir, writeFile, unlink, readFile } from "fs/promises";
 import path from "path";
 import sharp from "sharp";
+import { prisma } from "./prisma";
 
 /**
- * Capa mínima de almacenamiento de fotos.
- * Driver "local": guarda en /public/uploads y las sirve a través de /api/files/[name]
- * (solo con sesión). Para S3, implementa otro StorageDriver y devuélvelo en driver().
+ * Capa mínima de almacenamiento de fotos. Las fotos se sirven por /api/files/[name] (solo con sesión).
+ * - "local": guarda en /public/uploads (desarrollo o servidor con disco persistente).
+ * - "db": guarda en PostgreSQL (tabla StoredFile). Necesario en Vercel, donde el disco no persiste.
+ * Por defecto: "db" en Vercel y "local" en el resto. Se fuerza con STORAGE_DRIVER.
  */
 export interface StorageDriver {
   put(name: string, data: Buffer, contentType: string): Promise<string>;
@@ -38,16 +40,32 @@ const localDriver: StorageDriver = {
   },
 };
 
+const dbDriver: StorageDriver = {
+  async put(name, data, contentType) {
+    await prisma.storedFile.create({ data: { name, data: new Uint8Array(data), contentType } });
+    return `/api/files/${name}`;
+  },
+  async get(name) {
+    if (!SAFE_NAME.test(name)) return null;
+    const row = await prisma.storedFile.findUnique({ where: { name }, select: { data: true } });
+    return row ? Buffer.from(row.data) : null;
+  },
+  async remove(name) {
+    if (!SAFE_NAME.test(name)) return;
+    await prisma.storedFile.deleteMany({ where: { name } });
+  },
+};
+
 function driver(): StorageDriver {
-  // Punto de extensión: if (process.env.STORAGE_DRIVER === "s3") return s3Driver;
-  return localDriver;
+  const name = process.env.STORAGE_DRIVER || (process.env.VERCEL ? "db" : "local");
+  return name === "db" ? dbDriver : localDriver;
 }
 
 export const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 
 /** Recorta en cuadrado, redimensiona (máx. 600×600), comprime a WebP y guarda. Devuelve la URL. */
 export async function saveProfilePhoto(input: Buffer): Promise<string> {
-  const webp = await sharp(input)
+  const webp = await sharp(input, { limitInputPixels: 50_000_000 })
     .rotate()
     .resize(600, 600, { fit: "cover", withoutEnlargement: true })
     .webp({ quality: 80 })

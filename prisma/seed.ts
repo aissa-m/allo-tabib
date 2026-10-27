@@ -1,6 +1,8 @@
 /**
- * Seed idempotente: zonas, especialidades, admin y 30 profesionales ficticios.
+ * Seed idempotente: zonas, especialidades y, salvo con SEED_DEMO=false, admin de prueba y 30 profesionales ficticios.
  * Volver a ejecutarlo refresca las posiciones de demo (solo afecta a los perfiles de ejemplo).
+ *
+ * Producción: SEED_DEMO=false → solo zonas y especialidades. Los admins se crean con `npm run create-admin`.
  */
 import { PrismaClient, type Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
@@ -56,7 +58,7 @@ function randomPointIn(poly: Polygon) {
 }
 
 /** Avatar genérico (silueta + iniciales), sin fotos de personas reales. */
-async function makeAvatar(file: string, initials: string, type: "DOCTOR" | "NURSE", hue: number) {
+async function makeAvatar(file: string, inDb: boolean, initials: string, type: "DOCTOR" | "NURSE", hue: number) {
   const accent = type === "DOCTOR" ? "#7A9483" : "#6B7F99";
   const bg = `hsl(${hue}, 18%, 86%)`;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
@@ -68,7 +70,13 @@ async function makeAvatar(file: string, initials: string, type: "DOCTOR" | "NURS
     <text x="300" y="262" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="88" font-weight="600" fill="#F4F2EE">${initials}</text>
   </svg>`;
   const buf = await sharp(Buffer.from(svg)).resize(600, 600).webp({ quality: 82 }).toBuffer();
-  await writeFile(file, buf);
+  if (inDb) {
+    const name = path.basename(file);
+    const data = new Uint8Array(buf);
+    await prisma.storedFile.upsert({ where: { name }, update: { data }, create: { name, data, contentType: "image/webp" } });
+  } else {
+    await writeFile(file, buf);
+  }
 }
 
 async function main() {
@@ -106,6 +114,11 @@ async function main() {
   }
   console.log(`✓ ${specialtyIds.DOCTOR.length + specialtyIds.NURSE.length} especialidades`);
 
+  if (process.env.SEED_DEMO === "false") {
+    console.log("· SEED_DEMO=false: sin admin de prueba ni profesionales de ejemplo (usa npm run create-admin)");
+    return;
+  }
+
   // --- Admin ---
   const adminPhone = process.env.SEED_ADMIN_PHONE || "+22200000000";
   const adminPassword = process.env.SEED_ADMIN_PASSWORD || "admin1234";
@@ -119,6 +132,8 @@ async function main() {
   // --- Profesionales de ejemplo ---
   const uploadDir = path.join(process.cwd(), "public", "uploads");
   await mkdir(uploadDir, { recursive: true });
+  // Mismo criterio que src/lib/storage.ts: con el driver "db" las fotos van a la tabla StoredFile.
+  const storeInDb = (process.env.STORAGE_DRIVER || (process.env.VERCEL ? "db" : "local")) === "db";
   const demoHash = await bcrypt.hash("demo1234", 10);
   const now = Date.now();
 
@@ -135,7 +150,7 @@ async function main() {
     const nni = String(1200000000 + i * 3571917).padStart(10, "0").slice(0, 10);
     const zone = zoneByName.get(p.zone)!;
     const fileName = `seed-${n}.webp`;
-    await makeAvatar(path.join(uploadDir, fileName), `${p.first[0]}${p.last.replace(/^(Ould|Mint) /, "")[0]}`, p.type, (i * 37) % 360);
+    await makeAvatar(path.join(uploadDir, fileName), storeInDb, `${p.first[0]}${p.last.replace(/^(Ould|Mint) /, "")[0]}`, p.type, (i * 37) % 360);
 
     const isAvailable = available.has(i);
     let pos: { lat: number; lng: number } | null = null;

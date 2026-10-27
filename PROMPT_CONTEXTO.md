@@ -235,7 +235,7 @@ Convenciones: errores con `jsonError(status, code, details)` → `{ error, detai
 
 ## 7. Constantes (`src/lib/constants.ts`)
 
-- `CONTACT_PHONE = "+22222334411"` (provisional, falta el número real)
+- `CONTACT_PHONE = "+22249060000"` (número real del centro de llamadas)
 - `NKC_CENTER = { lat: 18.0858, lng: -15.9785 }`, `NKC_ZOOM = 12`
 - `NKC_BOUNDS` (área aceptada para posiciones) `[[-16.12, 17.9], [-15.75, 18.26]]`; `NKC_MAX_BOUNDS` (límites del mapa) algo más amplios
 - `LOCATION_STALE_MS = 5 min`, `AVAILABILITY_TIMEOUT_MS = 6 h`
