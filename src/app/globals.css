@@ -1,0 +1,157 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Paleta: Warm Ivory #EAE6DE, Deep Editorial Blue #226192 y Coral Orange #EF8557
+ * (canales RGB para poder usar opacidad en Tailwind).
+ * Nota: la caché de .next no se invalida al cambiar tailwind.config.ts; si un color nuevo
+ * no aparece tras reiniciar, basta con modificar este archivo (o borrar .next/cache).
+ * Los nombres de los tokens son históricos: «sage» es el color principal (azul),
+ * «slate» el secundario (verde azulado, enfermeros) y «terra» el de avisos (coral).
+ */
+@layer base {
+  :root {
+    --bg: 234 230 222; /* #EAE6DE warm ivory */
+    --bg-soft: 223 218 207; /* #DFDACF */
+    --ink: 35 42 51; /* #232A33 */
+    --muted: 95 100 107; /* #5F646B */
+    --sage: 34 97 146; /* #226192 deep editorial blue */
+    --slate: 27 110 115; /* #1B6E73 verde azulado */
+    /* Coral oscurecido para que el texto de avisos y errores se lea sobre el marfil (contraste 4,5:1) */
+    --terra: 168 70 31; /* #A8461F */
+    --coral: 239 133 87; /* #EF8557 coral orange (acentos y logo) */
+    /* Estado del profesional: verde y rojo bien distintos entre sí y del coral */
+    --online: 21 112 59; /* #15703B */
+    --offline: 198 40 40; /* #C62828 */
+    --line: 35 42 51;
+    color-scheme: light;
+  }
+  .dark {
+    --bg: 18 26 34; /* #121A22 */
+    --bg-soft: 26 37 48; /* #1A2530 */
+    --ink: 234 230 222; /* marfil */
+    --muted: 154 163 173;
+    --sage: 111 168 220; /* #6FA8DC azul aclarado para fondo oscuro */
+    --slate: 95 179 184; /* #5FB3B8 */
+    --terra: 239 133 87; /* #EF8557 */
+    --coral: 239 133 87;
+    --online: 76 194 122; /* #4CC27A */
+    --offline: 229 72 77; /* #E5484D */
+    --line: 255 255 255;
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-bg font-sans text-ink antialiased;
+    font-weight: 400;
+  }
+  html[lang="ar"] body {
+    @apply font-arabic;
+  }
+  h1, h2, h3, h4 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  html[lang="ar"] h1, html[lang="ar"] h2, html[lang="ar"] h3 {
+    letter-spacing: 0;
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--slate));
+    outline-offset: 2px;
+    border-radius: 0.75rem;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.5;
+  }
+  .dark input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
+  /* Móvil (sobre todo Safari iOS): el campo de fecha tiene un ancho mínimo propio que ignora w-full
+     y se sale del formulario. Se le quita el aspecto nativo y se deja encoger. */
+  @media (max-width: 639px) {
+    input[type="date"].field {
+      -webkit-appearance: none;
+      appearance: none;
+      display: block;
+      min-width: 0;
+      max-width: 100%;
+      /* Sin el aspecto nativo, Safari iOS pinta la fecha arriba: se centra con la altura de línea
+         (48 px del campo menos 2 px de borde). */
+      padding-top: 0;
+      padding-bottom: 0;
+      line-height: 46px;
+    }
+    input[type="date"].field::-webkit-date-and-time-value {
+      margin: 0;
+      line-height: 46px;
+      text-align: start;
+    }
+    input[type="date"].field::-webkit-datetime-edit {
+      padding: 0;
+      line-height: 46px;
+    }
+  }
+}
+
+@layer components {
+  .glass {
+    @apply rounded-2xl border border-white/30 bg-white/40 shadow-glass backdrop-blur-xl dark:border-white/10 dark:bg-white/5;
+  }
+  .glass-strong {
+    @apply rounded-2xl border border-white/40 bg-white/70 shadow-glass backdrop-blur-xl dark:border-white/10 dark:bg-[#1A2530]/80;
+  }
+  .field {
+    @apply h-12 w-full rounded-xl border border-line/10 bg-white/60 px-4 text-[15px] text-ink placeholder:text-muted/70 transition duration-200 focus:border-slate/60 focus:bg-white/80 focus:outline-none focus:ring-2 focus:ring-slate/20 dark:bg-white/5 dark:focus:bg-white/10;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-ink/80;
+  }
+}
+
+/* Mapa: fondo coherente y popups de cristal */
+.maplibregl-map {
+  font-family: inherit;
+}
+/* La tarjeta flotante va siempre por encima de los marcadores (que usan z-index hasta 20) */
+.maplibregl-popup.glass-popup {
+  z-index: 30;
+}
+.maplibregl-popup.glass-popup .maplibregl-popup-content {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  border-radius: 1rem;
+}
+.maplibregl-popup.glass-popup .maplibregl-popup-tip {
+  display: none;
+}
+.maplibregl-ctrl-attrib {
+  font-size: 10px;
+  background: rgb(255 255 255 / 0.6) !important;
+  backdrop-filter: blur(8px);
+  border-radius: 8px 0 0 0;
+}
+.dark .maplibregl-ctrl-attrib {
+  background: rgb(18 26 34 / 0.7) !important;
+  color: #aaa;
+}
+.dark .maplibregl-ctrl-attrib a {
+  color: #ccc;
+}
+
+/* Barras de desplazamiento discretas */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--line) / 0.15) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

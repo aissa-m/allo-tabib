@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PROFESSIONAL
+  ADMIN
+}
+
+enum ProfessionalType {
+  DOCTOR
+  NURSE
+}
+
+enum Sex {
+  MALE
+  FEMALE
+}
+
+model User {
+  id           String        @id @default(cuid())
+  role         Role          @default(PROFESSIONAL)
+  phone        String        @unique
+  email        String?       @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  professional Professional?
+}
+
+model Professional {
+  id                String           @id @default(cuid())
+  userId            String           @unique
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type              ProfessionalType
+  firstName         String
+  lastName          String
+  birthDate         DateTime
+  sex               Sex
+  nni               String           @unique
+  photoUrl          String
+  whatsapp          String?
+  specialtyId       Int
+  specialty         Specialty        @relation(fields: [specialtyId], references: [id])
+  yearsExperience   Int
+  workplace         String
+  languages         String[]
+  bio               String           @default("")
+  homeZoneId        Int
+  homeZone          Zone             @relation("HomeZone", fields: [homeZoneId], references: [id])
+  hasVehicle        Boolean          @default(false)
+  isAvailable       Boolean          @default(false)
+  availableSince    DateTime?
+  lat               Float?
+  lng               Float?
+  locationUpdatedAt DateTime?
+  /// true si la última posición la indicó el profesional a mano en el mapa (no el GPS)
+  locationManual    Boolean          @default(false)
+  currentZoneId     Int?
+  currentZone       Zone?            @relation("CurrentZone", fields: [currentZoneId], references: [id])
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([isAvailable])
+  @@index([currentZoneId])
+  @@index([type])
+  @@index([specialtyId])
+}
+
+model Specialty {
+  id            Int              @id @default(autoincrement())
+  type          ProfessionalType
+  nameFr        String
+  nameAr        String
+  professionals Professional[]
+
+  @@unique([type, nameFr])
+}
+
+model Zone {
+  id            Int            @id @default(autoincrement())
+  nameFr        String         @unique
+  nameAr        String
+  centerLat     Float
+  centerLng     Float
+  polygon       Json
+  homeOf        Professional[] @relation("HomeZone")
+  currentOf     Professional[] @relation("CurrentZone")
+}
+
+/// Fila única (id = 1) con el estado global de la web, gestionado desde el panel oculto.
+model SiteSetting {
+  id                Int       @id @default(1)
+  locked            Boolean   @default(false)
+  /// Intentos fallidos seguidos de contraseña del panel; al llegar al límite se bloquea el login un rato.
+  failedLogins      Int       @default(0)
+  loginBlockedUntil DateTime?
+  updatedAt         DateTime  @updatedAt
+}

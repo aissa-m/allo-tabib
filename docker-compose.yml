@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: homemed_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: homemed
+      POSTGRES_PASSWORD: homemed
+      POSTGRES_DB: homemed
+    ports:
+      - "5433:5432"
+    volumes:
+      - homemed_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U homemed"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  homemed_pgdata:

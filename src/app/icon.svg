@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ALLO TABIB">
+  <title>ALLO TABIB</title>
+  <defs>
+    <linearGradient id="allo-tabib-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2470A8"/>
+      <stop offset="1" stop-color="#1B4F78"/>
+    </linearGradient>
+    <linearGradient id="allo-tabib-bag" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F6F2EB"/>
+      <stop offset="1" stop-color="#E2DDD3"/>
+    </linearGradient>
+  </defs>
+  <!-- Fondo -->
+  <rect width="64" height="64" rx="16" fill="url(#allo-tabib-bg)"/>
+  <!-- Asa -->
+  <path d="M24 22V18.6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3V22" fill="none" stroke="#D9E1EA" stroke-width="3.6" stroke-linecap="round"/>
+  <!-- Sombra y cuerpo del maletín -->
+  <rect x="13.7" y="22.6" width="36.6" height="28.3" rx="4.2" fill="#0F3556" opacity="0.35"/>
+  <rect x="13.7" y="21.3" width="36.6" height="28.3" rx="4.2" fill="url(#allo-tabib-bag)"/>
+  <!-- Brillo superior -->
+  <path d="M17.9 22.3h28.2" stroke="#fff" stroke-width="0.9" stroke-linecap="round" opacity="0.7"/>
+  <!-- Círculo y cruz médica -->
+  <circle cx="32" cy="35.5" r="9.4" fill="#FAF7F2"/>
+  <rect x="29.9" y="28.85" width="4.2" height="13.3" rx="1.3" fill="#EF8557"/>
+  <rect x="25.35" y="33.4" width="13.3" height="4.2" rx="1.3" fill="#EF8557"/>
+</svg>
