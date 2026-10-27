@@ -33,7 +33,7 @@ Producción: `npm run build && npm start`.
 
 ## Despliegue en Vercel
 
-1. **Base de datos (Supabase)**: crea el proyecto en la región **West EU (Paris)**, la misma que las funciones de Vercel (`vercel.json` → `cdg1`). En *Connect* hay dos URLs:
+1. **Base de datos (Supabase)**: crea el proyecto en la región **West EU (Ireland)**, la misma que las funciones de Vercel (`vercel.json` → `dub1`). En *Connect* hay dos URLs:
    - **Transaction pooler** (puerto 6543) → `DATABASE_URL` en Vercel, añadiendo `?pgbouncer=true&connection_limit=1`.
    - **Session pooler** (puerto 5432) → solo para aplicar migraciones desde tu ordenador.
 

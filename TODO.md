@@ -35,7 +35,7 @@ Registro de lo hecho y lo pendiente. Los puntos están numerados para poder refe
 1. [x] Número del centro de llamadas: **+222 49 06 00 00**.
 2. [x] «Mot de passe oublié ?» por correo: `/forgot-password` → correo bilingüe (fr/ar) con enlace a `/reset-password` (1 h, un solo uso, solo se guarda el hash; máx. 3 por cuenta y hora; misma respuesta exista o no el email; envío tras responder). Envío con Resend; en local sin clave, en la consola. Migración `password_reset`.
 3. [x] `npm run create-admin` pide un email opcional para que los admins también puedan recuperar la contraseña.
-4. [x] Preparado para Supabase + Vercel: funciones en París (`vercel.json`, `cdg1`), RLS en todas las tablas (migración `enable_rls`) y pasos en el README.
+4. [x] Preparado para Supabase + Vercel: funciones en Irlanda (`vercel.json`, `dub1`), RLS en todas las tablas (migración `enable_rls`) y pasos en el README.
 
 ### H9 — 2026-10-27 — Revisión antes de la entrega
 1. [x] **Fotos en Vercel**: nuevo driver `db` en `src/lib/storage.ts` (tabla `StoredFile`, migración `stored_file_login_throttle`). Con el driver `local`, en Vercel las fotos se perdían o fallaba la subida (disco de solo lectura). El seed también guarda los avatares en la BD con ese driver.
