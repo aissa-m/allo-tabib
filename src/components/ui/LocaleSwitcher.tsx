@@ -3,8 +3,9 @@
 import { useTransition, useState, useRef, useEffect, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
-import { Check, Languages } from "lucide-react";
+import { Check, Languages, Loader2 } from "lucide-react";
 import { setLocale } from "@/i18n/actions";
 import { LOCALES, type AppLocale } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ export function LocaleSwitcher({ compact, className, placement = "bottom" }: { c
   const router = useRouter();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
+  const [target, setTarget] = useState<AppLocale | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   // "side": la barra lateral recorta lo que sobresale (overflow-hidden), así que la lista va en un portal con posición fija.
@@ -50,6 +52,8 @@ export function LocaleSwitcher({ compact, className, placement = "bottom" }: { c
 
   const choose = (l: AppLocale) => {
     setOpen(false);
+    if (l === locale) return;
+    setTarget(l);
     start(async () => {
       await setLocale(l);
       router.refresh();
@@ -104,6 +108,29 @@ export function LocaleSwitcher({ compact, className, placement = "bottom" }: { c
       </button>
       {open && placement !== "side" && list}
       {open && placement === "side" && sidePos && createPortal(list, document.body)}
+      {/* Mientras se recarga la página en el otro idioma (y cambia LTR/RTL): pantalla difuminada. */}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {pending && target && (
+              <motion.div
+                role="status"
+                aria-live="polite"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-[100] flex items-center justify-center bg-bg/40 backdrop-blur-md"
+              >
+                <div className="glass-strong flex items-center gap-3 px-5 py-4 text-[15px]" lang={target} dir={target === "ar" ? "rtl" : "ltr"}>
+                  <Loader2 size={20} strokeWidth={1.5} className="animate-spin text-sage" aria-hidden />
+                  {t(`locales.${target}`)}…
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body,
+        )}
     </div>
   );
 }
