@@ -51,3 +51,9 @@ export const PAGE_SIZE = 12;
  * del mapa (sin él salen sueltas y al revés). Servido localmente desde /public/vendor.
  */
 export const MAP_RTL_PLUGIN_URL = "/vendor/mapbox-gl-rtl-text-0.3.0.js";
+
+/** Manuales de uso (PDF en /public/manuals), uno por idioma de la interfaz. */
+export const MANUALS: Record<AppLocale, { href: string; file: string; size: string; pages: number }> = {
+  fr: { href: "/manuals/allo-tabib-manuel-fr.pdf", file: "Allo-Tabib-Manuel-utilisation.pdf", size: "8,8 Mo", pages: 26 },
+  ar: { href: "/manuals/allo-tabib-dalil-ar.pdf", file: "Allo-Tabib-Dalil-Al-Istikhdam.pdf", size: "8,7 Mo", pages: 26 },
+};

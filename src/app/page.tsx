@@ -5,6 +5,7 @@ import {
   ArrowDown,
   ArrowRight,
   BadgeCheck,
+  BookOpen,
   Check,
   Home,
   LogIn,
@@ -230,6 +231,23 @@ export default async function HomePage() {
             </div>
           </GlassCard>
         </section>
+
+        {/* --- Manual de uso --- */}
+        <GlassCard className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+          <div className="flex items-start gap-4">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sage/10 text-sage">
+              <BookOpen size={24} strokeWidth={1.5} aria-hidden />
+            </span>
+            <div>
+              <h2 className="text-xl">{t("guide.homeTitle")}</h2>
+              <p className="mt-1 text-muted">{t("guide.homeBody")}</p>
+            </div>
+          </div>
+          <Link href="/guide" className={cn(linkBtn, buttonVariants.secondary, buttonSizes.md, "shrink-0")}>
+            {t("guide.link")}
+            <ArrowRight size={18} strokeWidth={1.75} aria-hidden className="rtl:-scale-x-100" />
+          </Link>
+        </GlassCard>
       </main>
 
       {/* --- Pie --- */}
@@ -240,6 +258,10 @@ export default async function HomePage() {
             <a href={`tel:${CONTACT_PHONE}`} dir="ltr" className="font-medium text-ink hover:underline">
               {formatPhone(CONTACT_PHONE)}
             </a>
+            <Link href="/guide" className="inline-flex items-center gap-1.5 hover:text-ink hover:underline">
+              <BookOpen size={15} strokeWidth={1.5} aria-hidden />
+              {t("guide.link")}
+            </Link>
             <Link href="/login" className="inline-flex items-center gap-1.5 hover:text-ink hover:underline">
               <ShieldCheck size={15} strokeWidth={1.5} aria-hidden />
               {t("home.adminLink")}

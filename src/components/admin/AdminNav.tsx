@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { useTranslations } from "next-intl";
-import { Map as MapIcon, PanelLeftClose, PanelLeftOpen, Users, type LucideIcon } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { BookOpen, Map as MapIcon, PanelLeftClose, PanelLeftOpen, Users, type LucideIcon } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { LogoutButton } from "@/components/ui/LogoutButton";
+import { MANUALS, type AppLocale } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const COLLAPSE_KEY = "allotabib.navCollapsed";
@@ -18,6 +19,7 @@ const COLLAPSE_KEY = "allotabib.navCollapsed";
 export function AdminNav() {
   const t = useTranslations();
   const pathname = usePathname();
+  const manual = MANUALS[useLocale() as AppLocale].href;
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -77,6 +79,19 @@ export function AdminNav() {
             </li>
           ))}
         </ul>
+        <a
+          href={manual}
+          target="_blank"
+          rel="noopener"
+          title={collapsed ? t("guide.link") : undefined}
+          className={cn(
+            "mb-1 flex h-11 items-center gap-3 rounded-xl px-3 text-[15px] text-ink/75 transition duration-200 hover:bg-line/5 hover:text-ink",
+            collapsed && "justify-center px-0",
+          )}
+        >
+          <BookOpen size={20} strokeWidth={1.5} aria-hidden />
+          {collapsed ? <span className="sr-only">{t("guide.link")}</span> : <span>{t("guide.link")}</span>}
+        </a>
         <div className={cn("space-y-1 border-t border-line/[0.06] pt-3", collapsed && "flex flex-col items-center")}>
           <LocaleSwitcher compact={collapsed} placement="side" />
           <ThemeToggle withLabel={!collapsed} />
@@ -114,6 +129,15 @@ export function AdminNav() {
             {it.label}
           </Link>
         ))}
+        <a
+          href={manual}
+          target="_blank"
+          rel="noopener"
+          aria-label={t("guide.link")}
+          className="flex flex-col items-center gap-0.5 rounded-xl px-3 py-1 text-ink/70"
+        >
+          <BookOpen size={22} strokeWidth={1.5} aria-hidden />
+        </a>
         <LocaleSwitcher compact placement="top" />
         <ThemeToggle />
         <LogoutButton />

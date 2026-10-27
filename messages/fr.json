@@ -414,5 +414,20 @@
     "done": "Mot de passe modifié. Vous pouvez vous connecter.",
     "invalidTitle": "Lien invalide ou expiré",
     "requestNew": "Demander un nouveau lien"
+  },
+  "guide": {
+    "title": "Manuel d'utilisation",
+    "subtitle": "Le guide complet de la plateforme : accès, carte et recherche pour l'équipe de coordination, disponibilité et profil pour les médecins et infirmiers.",
+    "link": "Manuel d'utilisation",
+    "view": "Ouvrir",
+    "download": "Télécharger",
+    "meta": "PDF · {pages} pages · {size}",
+    "fr": "Français",
+    "ar": "العربية",
+    "forAdmins": "Administrateurs : carte, filtres, fiches et annuaire",
+    "forPros": "Soignants : inscription, disponibilité, position et profil",
+    "homeTitle": "Besoin d'aide pour utiliser la plateforme ?",
+    "homeBody": "Consultez le manuel d'utilisation, en français et en arabe.",
+    "help": "Besoin d'aide ? Contactez-nous au"
   }
 }
