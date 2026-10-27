@@ -11,6 +11,7 @@
     "seed": "tsx prisma/seed.ts",
     "create-admin": "tsx scripts/create-admin.ts",
     "site-control": "tsx scripts/site-control.ts",
+    "remove-demo": "tsx scripts/remove-demo.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

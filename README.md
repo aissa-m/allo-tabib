@@ -46,6 +46,14 @@ Producción: `npm run build && npm start`.
    npm run create-admin           # admins reales
    ```
    La variable de la terminal tiene prioridad sobre `.env`; cierra esa terminal al terminar para no tocar producción sin querer.
+
+   **Demo en producción** (para probar antes de entregar), en esa misma terminal:
+   ```powershell
+   $env:STORAGE_DRIVER="db"; $env:SEED_ADMIN="false"; $env:SEED_DEMO="true"
+   npm run seed          # 30 profesionales ficticios con fotos en la BD, sin admin de prueba
+   npm run remove-demo   # antes de entregar: los borra (pide escribir BORRAR)
+   ```
+   En producción los perfiles de demo no se renuevan solos: pasan a «no disponibles» a las 6 h. Vuelve a ejecutar el seed para refrescarlos.
    ⚠️ No ejecutes el seed sin `SEED_DEMO=false` contra producción: crea 30 profesionales ficticios y el admin `+22200000000 / admin1234`.
 3. **Variables de entorno en Vercel**: `DATABASE_URL`, `AUTH_SECRET` (uno nuevo, distinto del local: `npx auth secret`), `AUTH_TRUST_HOST=true`, `RESEND_API_KEY` + `EMAIL_FROM` (correo de «mot de passe oublié»; verifica el dominio del remitente en Resend), `APP_URL` (la URL pública, p. ej. `https://allotabib.mr`) y, si se usa, `SITE_CONTROL_PATH` + `SITE_CONTROL_PASSWORD_HASH`. Las `NEXT_PUBLIC_MAP_*` son opcionales.
 4. **Fotos**: en Vercel el disco no es persistente; las fotos se guardan automáticamente en PostgreSQL (tabla `StoredFile`, driver `db`). No hace falta configurar nada.

@@ -119,15 +119,19 @@ async function main() {
     return;
   }
 
-  // --- Admin ---
-  const adminPhone = process.env.SEED_ADMIN_PHONE || "+22200000000";
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD || "admin1234";
-  await prisma.user.upsert({
-    where: { phone: adminPhone },
-    update: { role: "ADMIN", passwordHash: await bcrypt.hash(adminPassword, 10) },
-    create: { role: "ADMIN", phone: adminPhone, passwordHash: await bcrypt.hash(adminPassword, 10) },
-  });
-  console.log(`✓ admin ${adminPhone} / ${adminPassword}`);
+  // --- Admin de prueba (SEED_ADMIN=false lo omite: p. ej. demo en producción con admins reales) ---
+  if (process.env.SEED_ADMIN === "false") {
+    console.log("· SEED_ADMIN=false: sin admin de prueba");
+  } else {
+    const adminPhone = process.env.SEED_ADMIN_PHONE || "+22200000000";
+    const adminPassword = process.env.SEED_ADMIN_PASSWORD || "admin1234";
+    await prisma.user.upsert({
+      where: { phone: adminPhone },
+      update: { role: "ADMIN", passwordHash: await bcrypt.hash(adminPassword, 10) },
+      create: { role: "ADMIN", phone: adminPhone, passwordHash: await bcrypt.hash(adminPassword, 10) },
+    });
+    console.log(`✓ admin ${adminPhone} / ${adminPassword}`);
+  }
 
   // --- Profesionales de ejemplo ---
   const uploadDir = path.join(process.cwd(), "public", "uploads");

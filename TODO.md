@@ -23,6 +23,8 @@ Registro de lo hecho y lo pendiente. Los puntos están numerados para poder refe
 17. [ ] **Registro sin límite**: `/api/register` es público y no tiene límite por IP; alguien podría crear cuentas en masa. Añadir un límite (p. ej. Vercel Firewall / rate limit) si se ve abuso.
 18. [ ] **Dependencias con avisos pendientes** (`npm audit`): `maplibre-gl` 5 (XSS en `setHTML`; la app no lo usa, los popups son React), `zod` 3 (memoria con colecciones enormes; mitigado con límites `.max()`), `deepmerge-ts` (vía Prisma CLI) y `fast-uri`. Requieren saltos de versión mayor (MapLibre 6, zod 4, Prisma 7).
 
+19. [ ] **Antes de entregar: `npm run remove-demo` contra la BD de producción** si se cargaron los perfiles de demo en Supabase.
+
 ## Ideas (no pedidas)
 
 1. Estilo de mapa propio con la paleta de la app (salvia / pizarra / arena), editado con Maputnik.
