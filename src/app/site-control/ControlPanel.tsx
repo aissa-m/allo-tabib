@@ -12,9 +12,13 @@ import { loginAction, logoutAction, setLockedAction, type LoginState } from "./a
 export function ControlLogin() {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(async (prev: LoginState, fd: FormData) => {
-    const next = await loginAction(prev, fd);
-    if (!next.error) router.refresh();
-    return next;
+    try {
+      const next = await loginAction(prev, fd);
+      if (!next.error) router.refresh();
+      return next;
+    } catch {
+      return { error: "No se pudo conectar con el servidor. Recarga la página." };
+    }
   }, {});
 
   return (

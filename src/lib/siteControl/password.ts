@@ -14,9 +14,16 @@ export async function hashPassword(password: string): Promise<string> {
   return `scrypt:${salt.toString("hex")}:${hash.toString("hex")}`;
 }
 
+/** Formato exacto que genera hashPassword. Un hash cortado al copiarlo no vale (un hash vacío aceptaría cualquier contraseña). */
+const HASH_FORMAT = /^scrypt:[0-9a-f]{32}:[0-9a-f]{64}$/;
+
+export function isValidHash(stored: string | undefined): boolean {
+  return !!stored && HASH_FORMAT.test(stored.trim());
+}
+
 export async function verifyPassword(password: string, stored: string): Promise<boolean> {
-  const [algo, saltHex, hashHex] = stored.split(":");
-  if (algo !== "scrypt" || !saltHex || !hashHex) return false;
+  if (!isValidHash(stored)) return false;
+  const [, saltHex, hashHex] = stored.trim().split(":");
   const expected = Buffer.from(hashHex, "hex");
   const actual = await scryptAsync(password, Buffer.from(saltHex, "hex"), expected.length);
   return actual.length === expected.length && timingSafeEqual(actual, expected);

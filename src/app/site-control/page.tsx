@@ -16,10 +16,24 @@ export const metadata: Metadata = {
 export default async function SiteControlPage() {
   if (!getControlPath()) notFound();
   const authed = verifySessionToken((await cookies()).get(SESSION_COOKIE)?.value);
+  let locked: boolean | null = null;
+  if (authed) {
+    try {
+      locked = await readSiteLocked();
+    } catch (e) {
+      console.error("[site-control] readSiteLocked", e);
+    }
+  }
 
   return (
     <main dir="ltr" lang="es" className="flex min-h-dvh items-center justify-center px-4 py-12 font-sans">
-      {authed ? <ControlPanel locked={await readSiteLocked()} /> : <ControlLogin />}
+      {!authed ? (
+        <ControlLogin />
+      ) : locked === null ? (
+        <p className="max-w-sm text-center text-muted">No se pudo leer el estado de la web (error de base de datos). Revisa los logs de Vercel y recarga.</p>
+      ) : (
+        <ControlPanel locked={locked} />
+      )}
     </main>
   );
 }

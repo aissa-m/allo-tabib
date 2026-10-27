@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/prisma";
-import { verifyPassword } from "./password";
+import { isValidHash, verifyPassword } from "./password";
 
 /**
  * Panel oculto para bloquear/desbloquear toda la web.
@@ -22,7 +22,8 @@ const CACHE_TTL_MS = 5000;
 
 export function getControlPath(): string | null {
   const raw = process.env.SITE_CONTROL_PATH?.trim();
-  if (!raw || !process.env.SITE_CONTROL_PASSWORD_HASH || !process.env.AUTH_SECRET) return null;
+  // Hash mal copiado (cortado, con comillas o con "SITE_CONTROL_PASSWORD_HASH=" delante): panel desactivado.
+  if (!raw || !isValidHash(process.env.SITE_CONTROL_PASSWORD_HASH) || !process.env.AUTH_SECRET) return null;
   const path = `/${raw.replace(/^\/+|\/+$/g, "")}`;
   // Ruta demasiado corta o que choca con la interna: panel desactivado.
   if (path.length < 8 || path.startsWith(CONTROL_ROUTE)) return null;

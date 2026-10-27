@@ -17,7 +17,13 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
   const path = getControlPath();
   if (!path) return { error: "Panel desactivado." };
   const password = String(formData.get("password") ?? "");
-  const result = password ? await attemptControlLogin(password) : "invalid";
+  let result: Awaited<ReturnType<typeof attemptControlLogin>>;
+  try {
+    result = password ? await attemptControlLogin(password) : "invalid";
+  } catch (e) {
+    console.error("[site-control] login", e);
+    return { error: "Error del servidor (base de datos). Revisa los logs de Vercel." };
+  }
 
   if (result === "throttled") return { error: "Demasiados intentos. Espera 15 minutos." };
   if (result === "invalid") {
@@ -42,6 +48,11 @@ export async function logoutAction(): Promise<void> {
 
 export async function setLockedAction(locked: boolean): Promise<{ ok: boolean }> {
   if (!verifySessionToken((await cookies()).get(SESSION_COOKIE)?.value)) return { ok: false };
-  await setSiteLocked(locked);
-  return { ok: true };
+  try {
+    await setSiteLocked(locked);
+    return { ok: true };
+  } catch (e) {
+    console.error("[site-control] setLocked", e);
+    return { ok: false };
+  }
 }
