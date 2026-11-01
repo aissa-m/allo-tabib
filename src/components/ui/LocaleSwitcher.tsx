@@ -104,7 +104,8 @@ export function LocaleSwitcher({ compact, className, placement = "bottom" }: { c
         )}
       >
         <Languages size={18} strokeWidth={1.5} aria-hidden />
-        {!compact && <span>{t(`locales.${locale as AppLocale}`)}</span>}
+        {/* En móvil solo el icono: con el nombre del idioma no cabe junto al logo de la cabecera. */}
+        {!compact && <span className="hidden sm:inline">{t(`locales.${locale as AppLocale}`)}</span>}
       </button>
       {open && placement !== "side" && list}
       {open && placement === "side" && sidePos && createPortal(list, document.body)}

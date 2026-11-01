@@ -8,7 +8,7 @@ import { ThemeToggle } from "./ThemeToggle";
 export async function PublicHeader() {
   const t = await getTranslations();
   return (
-    <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
+    <header className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
       <Link href="/" aria-label={t("common.appName")} className="rounded-xl">
         <Logo name={t("common.appName")} />
       </Link>
