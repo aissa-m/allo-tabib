@@ -66,7 +66,7 @@ export const ProfessionalMarker = memo(function ProfessionalMarker({ pro, highli
         {/* Punto de estado */}
         <span
           className={cn(
-            "absolute -end-0.5 bottom-0 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white dark:border-[#121A22]",
+            "absolute -end-0.5 bottom-0 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white dark:border-[#13111F]",
             off ? "bg-offline" : "bg-online",
           )}
         >

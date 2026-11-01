@@ -1,6 +1,6 @@
 import type { Config } from "tailwindcss";
 
-/** Paleta marfil / azul / coral: los tokens apuntan a variables CSS (ver globals.css) para modo claro/oscuro. */
+/** Paleta morado / verde del logo: los tokens apuntan a variables CSS (ver globals.css) para modo claro/oscuro. */
 const token = (name: string) => `rgb(var(--${name}) / <alpha-value>)`;
 
 const config: Config = {
@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        stone: { 50: "#EAE6DE", 100: "#DFDACF" },
+        stone: { 50: "#F2F1F6", 100: "#E6E4EE" },
         bg: token("bg"),
         "bg-soft": token("bg-soft"),
         ink: token("ink"),
@@ -27,8 +27,8 @@ const config: Config = {
         arabic: ["var(--font-arabic)", "var(--font-inter)", "system-ui", "sans-serif"],
       },
       boxShadow: {
-        glass: "0 8px 32px -8px rgba(35,42,51,0.12), 0 2px 8px -2px rgba(35,42,51,0.06)",
-        lift: "0 16px 40px -12px rgba(35,42,51,0.22)",
+        glass: "0 8px 32px -8px rgba(30,28,46,0.12), 0 2px 8px -2px rgba(30,28,46,0.06)",
+        lift: "0 16px 40px -12px rgba(30,28,46,0.22)",
       },
       keyframes: {
         pulseRing: {

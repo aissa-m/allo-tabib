@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import useSWR from "swr";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
@@ -11,9 +12,27 @@ import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { LogoutButton } from "@/components/ui/LogoutButton";
 import { MANUALS, type AppLocale } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { cn, fetcher } from "@/lib/utils";
 
 const COLLAPSE_KEY = "allotabib.navCollapsed";
+
+/** Punto verde sobre el icono cuando no cabe el número. */
+function NavDot() {
+  return <span aria-hidden className="absolute -end-1 -top-1 h-2.5 w-2.5 rounded-full bg-coral ring-2 ring-white dark:ring-[#13111F]" />;
+}
+
+/** Número de altas por validar; con `srOnly` queda solo para lectores de pantalla. */
+function PendingBadge({ count, srOnly }: { count: number; srOnly?: boolean }) {
+  const t = useTranslations("review");
+  const label = t("pendingCount", { count });
+  if (srOnly) return <span className="sr-only">{label}</span>;
+  return (
+    <span title={label} className="min-w-5 rounded-full bg-coral px-1.5 text-center text-xs font-semibold leading-5 text-[#13111F]">
+      <span aria-hidden>{count}</span>
+      <span className="sr-only">{label}</span>
+    </span>
+  );
+}
 
 /** Barra lateral de cristal colapsable (escritorio) / barra inferior (móvil). */
 export function AdminNav() {
@@ -21,6 +40,7 @@ export function AdminNav() {
   const pathname = usePathname();
   const manual = MANUALS[useLocale() as AppLocale].href;
   const [collapsed, setCollapsed] = useState(false);
+  const { data: pending } = useSWR<{ count: number }>("/api/admin/pending", fetcher, { refreshInterval: 60_000 });
 
   useEffect(() => {
     try {
@@ -40,9 +60,17 @@ export function AdminNav() {
     });
   };
 
-  const items: { href: string; icon: LucideIcon; label: string; active: boolean }[] = [
+  const pendingCount = pending?.count ?? 0;
+  const items: { href: string; icon: LucideIcon; label: string; active: boolean; badge?: number }[] = [
     { href: "/admin", icon: MapIcon, label: t("admin.nav.map"), active: pathname === "/admin" },
-    { href: "/admin/professionals", icon: Users, label: t("admin.nav.professionals"), active: pathname.startsWith("/admin/professionals") },
+    {
+      // Con altas pendientes, el enlace abre directamente esa pestaña.
+      href: pendingCount ? "/admin/professionals?status=PENDING" : "/admin/professionals",
+      icon: Users,
+      label: t("admin.nav.professionals"),
+      active: pathname.startsWith("/admin/professionals"),
+      badge: pendingCount,
+    },
   ];
 
   return (
@@ -72,9 +100,13 @@ export function AdminNav() {
                   it.active ? "bg-sage/15 font-medium text-ink" : "text-ink/75 hover:bg-line/5 hover:text-ink",
                 )}
               >
-                <it.icon size={20} strokeWidth={1.5} aria-hidden className={it.active ? "text-sage" : undefined} />
-                {!collapsed && <span>{it.label}</span>}
+                <span className="relative">
+                  <it.icon size={20} strokeWidth={1.5} aria-hidden className={it.active ? "text-sage" : undefined} />
+                  {collapsed && !!it.badge && <NavDot />}
+                </span>
+                {!collapsed && <span className="flex-1">{it.label}</span>}
                 {collapsed && <span className="sr-only">{it.label}</span>}
+                {!!it.badge && <PendingBadge count={it.badge} srOnly={collapsed} />}
               </Link>
             </li>
           ))}
@@ -125,8 +157,12 @@ export function AdminNav() {
             aria-current={it.active ? "page" : undefined}
             className={cn("flex flex-col items-center gap-0.5 rounded-xl px-3 py-1 text-[11px]", it.active ? "text-sage" : "text-ink/70")}
           >
-            <it.icon size={22} strokeWidth={1.5} aria-hidden />
+            <span className="relative">
+              <it.icon size={22} strokeWidth={1.5} aria-hidden />
+              {!!it.badge && <NavDot />}
+            </span>
             {it.label}
+            {!!it.badge && <PendingBadge count={it.badge} srOnly />}
           </Link>
         ))}
         <a

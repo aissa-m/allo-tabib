@@ -118,6 +118,7 @@ export function toDetailDTO(p: ProfessionalWithRelations): ProfessionalDetailDTO
     homeZone: { fr: p.homeZone.nameFr, ar: p.homeZone.nameAr },
     availableSince: p.availableSince?.toISOString() ?? null,
     createdAt: p.createdAt.toISOString(),
+    status: p.status,
   };
 }
 

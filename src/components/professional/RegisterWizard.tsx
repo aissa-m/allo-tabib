@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -14,6 +12,7 @@ import {
   BriefcaseMedical,
   Check,
   HeartPulse,
+  Hourglass,
   KeyRound,
   Lock,
   MapPin,
@@ -32,7 +31,8 @@ import { PasswordStrength } from "./PasswordStrength";
 import { ContactFields, PersonalFields, ProfessionalFields, ZoneFields, type ProfileForm } from "./ProfileFields";
 import { useErrorText, useSpecialties, useZones } from "@/lib/hooks";
 import { registerSchema, type RegisterData, type RegisterInput } from "@/lib/validation";
-import { normalizePhone } from "@/lib/phone";
+import { formatPhone } from "@/lib/phone";
+import { CONTACT_PHONE } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 type StepKey = "type" | "personal" | "contact" | "professional" | "zone" | "access";
@@ -49,7 +49,6 @@ const STEPS: { key: StepKey; icon: LucideIcon; fields: FieldPath<RegisterInput>[
 export function RegisterWizard() {
   const t = useTranslations();
   const err = useErrorText();
-  const router = useRouter();
   const isRtl = useLocale() === "ar";
   const { zones } = useZones();
   const { specialties } = useSpecialties();
@@ -59,6 +58,7 @@ export function RegisterWizard() {
   const [photo, setPhoto] = useState<{ blob: Blob; url: string } | null>(null);
   const [photoError, setPhotoError] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
 
   const form = useForm<RegisterInput, unknown, RegisterData>({
     resolver: zodResolver(registerSchema),
@@ -104,7 +104,7 @@ export function RegisterWizard() {
     if (await validateStep()) go(step + 1);
   };
 
-  const onSubmit = form.handleSubmit(async (data) => {
+  const onSubmit = form.handleSubmit(async () => {
     if (!photo) return go(1);
     setSubmitting(true);
     try {
@@ -130,18 +130,9 @@ export function RegisterWizard() {
         toast.error(Object.keys(details).length ? err(Object.values(details)[0][0]) : t("errors.server"));
         return;
       }
-      const login = await signIn("credentials", {
-        identifier: normalizePhone(data.phone),
-        password: data.password,
-        redirect: false,
-      });
-      if (login?.error) {
-        router.push("/login");
-        return;
-      }
-      toast.success(t("register.success"));
-      router.replace("/pro");
-      router.refresh();
+      // Sin sesión: la cuenta no sirve hasta que un admin la valide.
+      setDone(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
       toast.error(t("errors.network"));
     } finally {
@@ -151,6 +142,33 @@ export function RegisterWizard() {
 
   const fieldsForm = form as unknown as ProfileForm;
   const progress = ((step + 1) / STEPS.length) * 100;
+
+  if (done) {
+    return (
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="mx-auto w-full max-w-xl">
+        <GlassCard className="p-6 text-center sm:p-8">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-sage/15 text-sage">
+            <Hourglass size={28} strokeWidth={1.5} aria-hidden />
+          </div>
+          <h2 className="text-xl" role="status">{t("register.pendingTitle")}</h2>
+          <p className="mt-2 text-[15px] text-muted">{t("register.pendingBody")}</p>
+          <p className="mt-4 text-sm text-muted">
+            {t.rich("register.pendingHelp", {
+              phone: (chunks) => (
+                <a href={`tel:${CONTACT_PHONE}`} dir="ltr" className="whitespace-nowrap font-medium text-ink underline-offset-4 hover:underline">
+                  {chunks}
+                </a>
+              ),
+              number: formatPhone(CONTACT_PHONE),
+            })}
+          </p>
+          <Link href="/" className="mt-6 inline-flex font-medium text-slate underline-offset-4 hover:underline">
+            {t("register.backHome")}
+          </Link>
+        </GlassCard>
+      </motion.div>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-xl">

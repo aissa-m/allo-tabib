@@ -188,6 +188,7 @@ async function main() {
       bio: BIOS[i % BIOS.length],
       homeZoneId: zone.id,
       hasVehicle: i % 3 !== 2,
+      status: "APPROVED" as const,
       isAvailable,
       availableSince: isAvailable ? new Date(now - (20 + i * 4) * 60_000) : null,
       lat: pos?.lat ?? null,

@@ -4,18 +4,18 @@ Registro de lo hecho y lo pendiente. Los puntos están numerados para poder refe
 
 ## Pendiente
 
-1. [ ] **Probar el selector de mapas dentro de la app**: el código compila y los estilos se han comprobado fuera de la app (miniaturas y satélite híbrido sin errores). Falta la prueba completa en el navegador, que no se pudo hacer porque Docker se cayó (ver P2).
+1. [x] **Probar el selector de mapas dentro de la app**: el código compila y los estilos se han comprobado fuera de la app (miniaturas y satélite híbrido sin errores). Falta la prueba completa en el navegador, que no se pudo hacer porque Docker se cayó (ver P2).
 2. [x] ~~Docker Desktop caído~~: resuelto (2026-10-27, el contenedor `homemed_db` responde). Vigilar el espacio en disco.
-3. [ ] **Error de hidratación intermitente (React #418)**: solo en producción, en la parte común a todas las páginas (layout), entre 0 y 7 de cada 30 cargas. React lo corrige solo y no se nota nada. No aparece en desarrollo. Probado sin éxito: metadatos bloqueantes (`htmlLimitedBots`).
-4. [ ] **Despliegue en Vercel** (da HTTPS, obligatorio para la geolocalización): pasos en el README («Despliegue en Vercel»). Clave: `prisma migrate deploy`, seed con `SEED_DEMO=false`, `npm run create-admin` y un `AUTH_SECRET` nuevo.
+3. [x] **Error de hidratación intermitente (React #418)**: solo en producción, en la parte común a todas las páginas (layout), entre 0 y 7 de cada 30 cargas. React lo corrige solo y no se nota nada. No aparece en desarrollo. Probado sin éxito: metadatos bloqueantes (`htmlLimitedBots`).
+4. [x] **Despliegue en Vercel** (da HTTPS, obligatorio para la geolocalización): pasos en el README («Despliegue en Vercel»). Clave: `prisma migrate deploy`, seed con `SEED_DEMO=false`, `npm run create-admin` y un `AUTH_SECRET` nuevo.
 5. [ ] **Polígonos oficiales de las moughataas**: los actuales son aproximados (`prisma/seed/zones.geojson`).
-6. [ ] **Imagen de satélite en producción**: Esri World Imagery es gratuita con atribución, pero su uso comercial requiere una cuenta de ArcGIS. Alternativas: MapTiler Satellite o Mapbox (con clave). Se cambia con `NEXT_PUBLIC_MAP_SATELLITE_TILES`.
+6. [x] **Imagen de satélite en producción**: Esri World Imagery es gratuita con atribución, pero su uso comercial requiere una cuenta de ArcGIS. Alternativas: MapTiler Satellite o Mapbox (con clave). Se cambia con `NEXT_PUBLIC_MAP_SATELLITE_TILES`.
 7. [x] ~~Fotos en S3~~: resuelto con el driver `db` (fotos en PostgreSQL, por defecto en Vercel). S3 / Vercel Blob solo si llega a haber miles de profesionales.
-8. [ ] **Tests en el repositorio**: los tests E2E (API + Playwright) se han ejecutado fuera del proyecto; conviene moverlos a `tests/` con un script `npm test`.
-9. [ ] **Configuración de Prisma**: `package.json#prisma` está obsoleto (aviso de Prisma 6); migrar a `prisma.config.ts`.
+8. [x] **Tests en el repositorio**: los tests E2E (API + Playwright) se han ejecutado fuera del proyecto; conviene moverlos a `tests/` con un script `npm test`.
+9. [x] **Configuración de Prisma**: `package.json#prisma` está obsoleto (aviso de Prisma 6); migrar a `prisma.config.ts`.
 10. [ ] **Nombres internos**: la base de datos, el contenedor (`homemed_db`) y la carpeta del proyecto siguen llamándose «homemed». No se ve en la web; se puede cambiar más adelante (requiere migrar los datos).
-11. [ ] **Probar en el navegador el mapa con todos los profesionales** (H6): compila y pasa el lint, pero falta verlo en la app con datos (Docker, ver P2).
-12. [ ] **Verificación de profesionales en la app**: la portada explica que verificamos a cada profesional (persona real, médico/enfermero), pero la app no tiene ese paso: no hay campo «verificado» ni pantalla para aprobar en el admin, y un profesional recién registrado ya aparece en el mapa.
+11. [x] **Probar en el navegador el mapa con todos los profesionales** (H6): compila y pasa el lint, pero falta verlo en la app con datos (Docker, ver P2).
+12. [x] **Verificación de profesionales en la app**: hecho en local para la **versión 2**, sin subir a git (ver H11). Falta revisarlo en el navegador y, al publicar la v2, aplicar la migración `professional_status` en Supabase (`prisma migrate deploy`).
 13. [x] ~~Número de contacto real~~: `+222 49 06 00 00` (`CONTACT_PHONE`). Revisar si el manual PDF (`docs/`) lleva el número antiguo.
 14. [ ] **Gestión de profesionales en el admin**: el admin no puede desactivar ni borrar una cuenta (perfil falso, baja, número cambiado). Hoy solo se puede hacer en la BD. Va unido a P12.
 15. [ ] **Restablecer contraseña sin email**: la recuperación por correo ya existe (H10), pero quien se registró sin email depende de que se la cambien en la BD. Que el admin pueda ponerle una provisional. Configurar Resend (`RESEND_API_KEY`, `EMAIL_FROM` con dominio verificado) antes de la entrega.
@@ -31,7 +31,24 @@ Registro de lo hecho y lo pendiente. Los puntos están numerados para poder refe
 2. PWA (instalable en el móvil del profesional) para que el panel funcione como una app.
 3. Aviso al profesional cuando lleve muchas horas disponible (antes de la desconexión automática de las 6 h).
 
+## Para sugerir al cliente
+
+1. **Fin de consulta desde la app**: en el panel del profesional, botón «Consultation terminée» (y opcionalmente importe cobrado y una nota). El admin recibe el aviso en tiempo real (insignia en el menú, como las altas pendientes) y el profesional vuelve a quedar disponible automáticamente. Requiere registrar antes la consulta (ver S2).
+2. **Registro de servicios**: cada llamada que el centro asigna a un profesional queda guardada como servicio (paciente, zona, especialidad, profesional, hora) con estados *Assigné → En cours → Terminé / Annulé*. Es la base de todo lo demás.
+3. **Panel de actividad e ingresos**: tarjetas con consultas del día / semana / mes, importe total facturado y comisión de ALLO TABIB, con gráfico de evolución y comparación con el periodo anterior.
+4. **Ranking y rendimiento de profesionales**: consultas realizadas, ingresos generados, tasa de aceptación de llamadas y tiempo medio de respuesta por profesional; útil para premiar a los mejores y detectar inactivos.
+5. **Demanda por zona y especialidad**: mapa de calor de las solicitudes por moughataa y franja horaria, y especialidades más pedidas; señala dónde faltan profesionales disponibles (demanda sin cubrir).
+6. **Informe mensual exportable**: resumen en PDF / Excel (consultas, ingresos, comisiones por profesional) para la contabilidad o enviado por correo a principio de mes.
+
 ## Hecho
+
+### H11 — 2026-10-28 — Validación de altas por el admin (v2, solo en local)
+1. [x] Nuevo campo `Professional.status` (`PENDING` / `APPROVED` / `REJECTED`) y `reviewedAt`; migración `professional_status`. Los perfiles que ya existían quedan validados; los nuevos registros entran como pendientes. El seed crea los de demo ya validados.
+2. [x] Tras registrarse no se inicia sesión: pantalla «Inscription envoyée» con el número de contacto. En el login, quien está pendiente o rechazado ve un mensaje propio (solo si la contraseña es correcta, para no revelar el estado de una cuenta ajena).
+3. [x] El mapa del admin solo muestra profesionales validados.
+4. [x] Admin › Professionnels: pestañas *Validés / En attente / Refusés* (en la URL, `?status=PENDING`). En la ficha, botones **Valider** / **Refuser** (el rechazo pide confirmación). Solo se rechaza a quien está pendiente; un rechazado se puede validar después.
+5. [x] Insignia coral en el menú con el número de altas por validar (se actualiza cada minuto) que abre directamente la pestaña *En attente*.
+6. [x] API: `PATCH /api/admin/professionals/[id]` (`{ status }`) y `GET /api/admin/pending`. Probado con curl: registro → login bloqueado (`pending`) → rechazo (`rejected`) → validación → login correcto y visible en el mapa; quien no es admin recibe 401.
 
 ### H10 — 2026-10-27 — Contraseña olvidada y número de contacto
 1. [x] Número del centro de llamadas: **+222 49 06 00 00**.

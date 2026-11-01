@@ -15,7 +15,7 @@ export function Toaster({ dir }: { dir: "ltr" | "rtl" }) {
       toastOptions={{
         classNames: {
           toast:
-            "!rounded-2xl !border !border-white/30 !bg-white/70 !text-ink !shadow-glass !backdrop-blur-xl dark:!border-white/10 dark:!bg-[#1A2530]/85 !font-sans",
+            "!rounded-2xl !border !border-white/30 !bg-white/70 !text-ink !shadow-glass !backdrop-blur-xl dark:!border-white/10 dark:!bg-[#1C1A2E]/85 !font-sans",
           success: "[&_[data-icon]]:!text-sage",
           error: "[&_[data-icon]]:!text-terra",
         },

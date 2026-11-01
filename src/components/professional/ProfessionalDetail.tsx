@@ -1,14 +1,18 @@
 "use client";
 
-import useSWR from "swr";
+import { useState } from "react";
+import useSWR, { useSWRConfig } from "swr";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 import {
   Award,
   Building2,
   CalendarDays,
   Car,
+  CircleCheck,
+  CircleX,
   Clock,
   FileText,
+  Hourglass,
   IdCard,
   Languages,
   Mail,
@@ -22,6 +26,8 @@ import { Modal } from "@/components/ui/Modal";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Chip";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { Button } from "@/components/ui/Button";
+import { toast } from "@/components/ui/Toast";
 import { ContactActions } from "./ContactActions";
 import { TypeIcon } from "./ProfessionalCard";
 import { useTimeAgo } from "@/lib/hooks";
@@ -49,6 +55,66 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+/** Validar o rechazar un alta pendiente (o validar una rechazada). El rechazo pide confirmación. */
+function ReviewActions({ pro }: { pro: ProfessionalDetailDTO }) {
+  const t = useTranslations();
+  const { mutate } = useSWRConfig();
+  const [busy, setBusy] = useState<"APPROVED" | "REJECTED" | null>(null);
+  const [confirmReject, setConfirmReject] = useState(false);
+
+  const review = async (status: "APPROVED" | "REJECTED") => {
+    setBusy(status);
+    try {
+      const res = await fetch(`/api/admin/professionals/${pro.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // Ficha, listas, mapa e insignia del menú.
+      await mutate((key) => typeof key === "string" && key.startsWith("/api/admin/"));
+      toast.success(status === "APPROVED" ? t("review.approved") : t("review.rejected"));
+    } catch {
+      toast.error(t("errors.server"));
+    } finally {
+      setBusy(null);
+      setConfirmReject(false);
+    }
+  };
+
+  return (
+    <section className="mt-5 rounded-2xl bg-coral/15 p-4">
+      <p className="flex items-start gap-2 text-sm text-ink">
+        <Hourglass size={16} strokeWidth={1.5} aria-hidden className="mt-0.5 shrink-0" />
+        {pro.status === "PENDING" ? t("review.pendingHint") : t("review.rejectedHint")}
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {confirmReject ? (
+          <>
+            <Button variant="warning" icon={CircleX} loading={busy === "REJECTED"} disabled={!!busy} onClick={() => review("REJECTED")} className="flex-1">
+              {t("review.confirmReject")}
+            </Button>
+            <Button variant="secondary" disabled={!!busy} onClick={() => setConfirmReject(false)} className="flex-1">
+              {t("common.cancel")}
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button icon={CircleCheck} loading={busy === "APPROVED"} disabled={!!busy} onClick={() => review("APPROVED")} className="flex-1">
+              {t("review.approve")}
+            </Button>
+            {pro.status === "PENDING" && (
+              <Button variant="secondary" icon={CircleX} disabled={!!busy} onClick={() => setConfirmReject(true)} className="flex-1">
+                {t("review.reject")}
+              </Button>
+            )}
+          </>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export function ProfessionalDetailBody({ pro }: { pro: ProfessionalDetailDTO }) {
   const t = useTranslations();
   const locale = useLocale();
@@ -67,13 +133,19 @@ export function ProfessionalDetailBody({ pro }: { pro: ProfessionalDetailDTO }) 
           {t(`types.${pro.type}`)} · {localized(pro.specialty, locale)}
         </p>
         <div className="mt-3">
-          {pro.isAvailable ? (
+          {pro.status === "PENDING" ? (
+            <Badge tone="terra" icon={Hourglass}>{t("review.statusPending")}</Badge>
+          ) : pro.status === "REJECTED" ? (
+            <Badge tone="offline" icon={CircleX}>{t("review.statusRejected")}</Badge>
+          ) : pro.isAvailable ? (
             <Badge tone="online" icon={Power}>{t("status.available")}</Badge>
           ) : (
             <Badge tone="offline" icon={Power}>{t("status.unavailable")}</Badge>
           )}
         </div>
       </div>
+
+      {pro.status !== "APPROVED" && <ReviewActions pro={pro} />}
 
       <section className="mt-5 rounded-2xl bg-sage/10 p-4">
         <ContactActions phone={pro.phone} whatsapp={pro.whatsapp} size="lg" />

@@ -31,8 +31,8 @@ import { CONTACT_PHONE } from "@/lib/constants";
 import { formatPhone, whatsappLink } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
-/** Texto oscuro fijo sobre coral: el blanco no llega al contraste mínimo sobre ese naranja. */
-const ON_CORAL = "text-[#121A22]";
+/** Texto oscuro fijo sobre el verde del logo: el blanco no llega al contraste mínimo sobre ese verde. */
+const ON_CORAL = "text-[#13111F]";
 const linkBtn = "inline-flex items-center font-medium transition duration-200 hover:-translate-y-px";
 
 function Kicker({ icon: Icon, children }: { icon: LucideIcon; children: React.ReactNode }) {
@@ -57,7 +57,7 @@ function PhoneBlock({ title, subtitle, call, whatsapp, className }: { title: str
       </a>
       <p className="mt-1 text-sm opacity-80">{subtitle}</p>
       <div className="mt-5 flex flex-wrap gap-3">
-        <a href={`tel:${CONTACT_PHONE}`} className={cn(linkBtn, buttonSizes.lg, "bg-[#121A22] text-white shadow-sm hover:bg-[#121A22]/90")}>
+        <a href={`tel:${CONTACT_PHONE}`} className={cn(linkBtn, buttonSizes.lg, "bg-[#13111F] text-white shadow-sm hover:bg-[#13111F]/90")}>
           <Phone size={20} strokeWidth={1.75} aria-hidden />
           {call}
         </a>
@@ -65,7 +65,7 @@ function PhoneBlock({ title, subtitle, call, whatsapp, className }: { title: str
           href={whatsappLink(CONTACT_PHONE)}
           target="_blank"
           rel="noopener noreferrer"
-          className={cn(linkBtn, buttonSizes.lg, "bg-white/85 text-[#121A22] shadow-sm hover:bg-white")}
+          className={cn(linkBtn, buttonSizes.lg, "bg-white/85 text-[#13111F] shadow-sm hover:bg-white")}
         >
           <MessageCircle size={20} strokeWidth={1.75} aria-hidden />
           {whatsapp}
@@ -154,7 +154,7 @@ export default async function HomePage() {
               </li>
             ))}
           </ol>
-          <div className="mt-6 grid items-center gap-6 rounded-3xl bg-sage p-6 text-white dark:text-[#0E1A26] sm:p-8 md:grid-cols-[1fr_auto]">
+          <div className="mt-6 grid items-center gap-6 rounded-3xl bg-sage p-6 text-white dark:text-[#0D0B1A] sm:p-8 md:grid-cols-[1fr_auto]">
             <div>
               <h3 className="text-2xl">{t("home.phoneTitle")}</h3>
               <p className="mt-1 opacity-85">{t("home.callOrWhatsapp")}</p>
@@ -200,7 +200,7 @@ export default async function HomePage() {
                       </p>
                       <p className="mt-2.5 rounded-2xl rounded-ss-sm bg-sage/10 px-3.5 py-2.5 text-[15px]">{t("home.demoText")}</p>
                       <div className="mt-3 flex flex-wrap gap-2">
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-online px-3 py-1.5 text-sm font-medium text-white dark:text-[#0E1A26]">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-online px-3 py-1.5 text-sm font-medium text-white dark:text-[#0D0B1A]">
                           <Check size={15} strokeWidth={2} />
                           {t("home.demoYes")}
                         </span>

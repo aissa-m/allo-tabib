@@ -33,7 +33,7 @@ export function Chip({ active, icon: Icon, tone = "sage", floating, className, c
         floating
           ? active
             ? floatingActiveTone[tone]
-            : "border-line/10 bg-white/90 text-ink shadow-glass backdrop-blur-md hover:bg-white dark:border-white/10 dark:bg-[#1A2530]/90 dark:hover:bg-[#22303C]"
+            : "border-line/10 bg-white/90 text-ink shadow-glass backdrop-blur-md hover:bg-white dark:border-white/10 dark:bg-[#1C1A2E]/90 dark:hover:bg-[#26233D]"
           : active
           ? activeTone[tone]
           : "border-white/40 bg-white/50 text-ink/80 backdrop-blur-md hover:bg-white/70 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10",

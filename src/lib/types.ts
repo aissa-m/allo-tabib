@@ -2,6 +2,8 @@
 
 export type ProType = "DOCTOR" | "NURSE";
 export type LocationStatus = "live" | "stale" | "none";
+/** Validación del alta por un admin. */
+export type AccountStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 export type LocalizedName = { fr: string; ar: string };
 
@@ -59,6 +61,7 @@ export type ProfessionalDetailDTO = ProfessionalCardDTO & {
   homeZone: { fr: string; ar: string };
   availableSince: string | null;
   createdAt: string;
+  status: AccountStatus;
 };
 
 export type ProfessionalsPage = {

@@ -14,14 +14,14 @@ export const LOCKED_HTML = `<!doctype html>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@500;600&family=Inter:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #EAE6DE; --ink: #232A33; --muted: #5F646B;
-    --blue: #226192; --coral: #EF8557; --glow-a: rgba(34,97,146,.20); --glow-b: rgba(239,133,87,.22);
+    --bg: #F2F1F6; --ink: #1E1C2E; --muted: #5E5B6E;
+    --blue: #1800AC; --coral: #87C442; --glow-a: rgba(24,0,172,.16); --glow-b: rgba(135,196,66,.24);
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #121A22; --ink: #EAE6DE; --muted: #9AA3AD;
-      --blue: #6FA8DC; --glow-a: rgba(111,168,220,.16); --glow-b: rgba(239,133,87,.14);
+      --bg: #13111F; --ink: #EEEDF4; --muted: #A09DB2;
+      --blue: #9D8CFF; --glow-a: rgba(157,140,255,.16); --glow-b: rgba(135,196,66,.14);
       color-scheme: dark;
     }
   }
@@ -42,8 +42,8 @@ export const LOCKED_HTML = `<!doctype html>
   .mark {
     width: 72px; height: 72px; margin: 0 auto clamp(28px, 6vh, 56px); border-radius: 22px;
     display: grid; place-items: center; color: #fff;
-    background: linear-gradient(145deg, #2470A8, #1B4F78);
-    box-shadow: 0 18px 40px -16px rgba(27,79,120,.55), inset 0 1px 0 rgba(255,255,255,.25);
+    background: linear-gradient(145deg, #2A12C4, #1800AC);
+    box-shadow: 0 18px 40px -16px rgba(24,0,172,.45), inset 0 1px 0 rgba(255,255,255,.25);
   }
   h1 {
     font-weight: 600; line-height: 1.04; letter-spacing: -0.035em; text-wrap: balance;

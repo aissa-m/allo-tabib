@@ -42,21 +42,21 @@ const escape = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)}
 export function passwordResetMail(to: string, link: string, minutes: number): Mail {
   const url = escape(link);
   const button = (label: string) =>
-    `<a href="${url}" style="display:inline-block;background:#226192;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:12px">${label}</a>`;
-  const html = `<!doctype html><html><body style="margin:0;background:#EAE6DE;font-family:Arial,Helvetica,sans-serif;color:#232A33">
+    `<a href="${url}" style="display:inline-block;background:#1800AC;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:12px">${label}</a>`;
+  const html = `<!doctype html><html><body style="margin:0;background:#F2F1F6;font-family:Arial,Helvetica,sans-serif;color:#1E1C2E">
 <div style="max-width:520px;margin:0 auto;padding:32px 20px">
   <div style="background:#ffffff;border-radius:20px;padding:28px">
-    <p style="margin:0 0 4px;font-size:20px;font-weight:700">ALLO <span style="color:#226192">TABIB</span></p>
+    <p style="margin:0 0 4px;font-size:20px;font-weight:700;letter-spacing:0.12em;color:#1800AC">ALLO <span style="color:#87C442">TABIB</span></p>
     <h1 style="font-size:18px;margin:20px 0 8px">Réinitialiser votre mot de passe</h1>
     <p style="margin:0 0 18px;line-height:1.5">Vous avez demandé un nouveau mot de passe. Ce lien est valable ${minutes} minutes et ne peut servir qu'une fois.</p>
     ${button("Choisir un nouveau mot de passe")}
-    <hr style="border:none;border-top:1px solid #e5e1d8;margin:28px 0">
+    <hr style="border:none;border-top:1px solid #E6E4EE;margin:28px 0">
     <div dir="rtl" lang="ar" style="text-align:right">
       <h1 style="font-size:18px;margin:0 0 8px">إعادة تعيين كلمة المرور</h1>
       <p style="margin:0 0 18px;line-height:1.7">طلبت كلمة مرور جديدة. هذا الرابط صالح لمدة ${minutes} دقيقة ولا يُستخدم إلا مرة واحدة.</p>
       ${button("اختيار كلمة مرور جديدة")}
     </div>
-    <p style="margin:28px 0 0;font-size:13px;color:#5F646B;line-height:1.5">Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe ne change pas.<br><span dir="rtl" lang="ar">إذا لم تطلب ذلك، تجاهل هذه الرسالة: كلمة مرورك لن تتغير.</span></p>
+    <p style="margin:28px 0 0;font-size:13px;color:#5E5B6E;line-height:1.5">Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe ne change pas.<br><span dir="rtl" lang="ar">إذا لم تطلب ذلك، تجاهل هذه الرسالة: كلمة مرورك لن تتغير.</span></p>
   </div>
 </div></body></html>`;
   const text = `ALLO TABIB — Réinitialiser votre mot de passe / إعادة تعيين كلمة المرور

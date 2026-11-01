@@ -20,7 +20,7 @@ export async function GET(req: Request) {
 
   await expireStaleAvailability();
 
-  const and: Prisma.ProfessionalWhereInput[] = [];
+  const and: Prisma.ProfessionalWhereInput[] = [{ status: q.status }];
   if (q.q) {
     const digits = q.q.replace(/\D/g, "");
     // Cada palabra debe coincidir con nombre o apellido; o bien teléfono / NNI.
@@ -40,7 +40,7 @@ export async function GET(req: Request) {
   if (q.specialty.length) and.push({ specialtyId: { in: q.specialty } });
   if (q.zone) and.push({ OR: [{ homeZoneId: q.zone }, { currentZoneId: q.zone }] });
   if (q.available !== undefined) and.push({ isAvailable: q.available });
-  const where: Prisma.ProfessionalWhereInput = and.length ? { AND: and } : {};
+  const where: Prisma.ProfessionalWhereInput = { AND: and };
 
   const orderBy: Prisma.ProfessionalOrderByWithRelationInput[] =
     q.sort === "name"

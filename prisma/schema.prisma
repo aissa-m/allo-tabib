@@ -17,21 +17,28 @@ enum ProfessionalType {
   NURSE
 }
 
+/// Alta de profesionales: no pueden entrar ni salen en el mapa hasta que un admin los valida.
+enum ProfessionalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum Sex {
   MALE
   FEMALE
 }
 
 model User {
-  id           String        @id @default(cuid())
-  role         Role          @default(PROFESSIONAL)
-  phone        String        @unique
-  email        String?       @unique
+  id           String               @id @default(cuid())
+  role         Role                 @default(PROFESSIONAL)
+  phone        String               @unique
+  email        String?              @unique
   passwordHash String
   /// Intentos de login fallidos seguidos; al llegar al límite la cuenta se bloquea un rato.
-  failedLogins Int           @default(0)
+  failedLogins Int                  @default(0)
   lockedUntil  DateTime?
-  createdAt    DateTime      @default(now())
+  createdAt    DateTime             @default(now())
   professional Professional?
   resetTokens  PasswordResetToken[]
 }
@@ -50,39 +57,43 @@ model PasswordResetToken {
 }
 
 model Professional {
-  id                String           @id @default(cuid())
-  userId            String           @unique
-  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String             @id @default(cuid())
+  userId            String             @unique
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   type              ProfessionalType
   firstName         String
   lastName          String
   birthDate         DateTime
   sex               Sex
-  nni               String           @unique
+  nni               String             @unique
   photoUrl          String
   whatsapp          String?
   specialtyId       Int
-  specialty         Specialty        @relation(fields: [specialtyId], references: [id])
+  specialty         Specialty          @relation(fields: [specialtyId], references: [id])
   yearsExperience   Int
   workplace         String
   languages         String[]
-  bio               String           @default("")
+  bio               String             @default("")
   homeZoneId        Int
-  homeZone          Zone             @relation("HomeZone", fields: [homeZoneId], references: [id])
-  hasVehicle        Boolean          @default(false)
-  isAvailable       Boolean          @default(false)
+  homeZone          Zone               @relation("HomeZone", fields: [homeZoneId], references: [id])
+  hasVehicle        Boolean            @default(false)
+  status            ProfessionalStatus @default(PENDING)
+  /// Cuándo un admin lo validó o lo rechazó por última vez.
+  reviewedAt        DateTime?
+  isAvailable       Boolean            @default(false)
   availableSince    DateTime?
   lat               Float?
   lng               Float?
   locationUpdatedAt DateTime?
   /// true si la última posición la indicó el profesional a mano en el mapa (no el GPS)
-  locationManual    Boolean          @default(false)
+  locationManual    Boolean            @default(false)
   currentZoneId     Int?
-  currentZone       Zone?            @relation("CurrentZone", fields: [currentZoneId], references: [id])
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  currentZone       Zone?              @relation("CurrentZone", fields: [currentZoneId], references: [id])
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   @@index([isAvailable])
+  @@index([status])
   @@index([currentZoneId])
   @@index([type])
   @@index([specialtyId])
@@ -99,14 +110,14 @@ model Specialty {
 }
 
 model Zone {
-  id            Int            @id @default(autoincrement())
-  nameFr        String         @unique
-  nameAr        String
-  centerLat     Float
-  centerLng     Float
-  polygon       Json
-  homeOf        Professional[] @relation("HomeZone")
-  currentOf     Professional[] @relation("CurrentZone")
+  id        Int            @id @default(autoincrement())
+  nameFr    String         @unique
+  nameAr    String
+  centerLat Float
+  centerLng Float
+  polygon   Json
+  homeOf    Professional[] @relation("HomeZone")
+  currentOf Professional[] @relation("CurrentZone")
 }
 
 /// Fotos subidas (driver de almacenamiento "db"): en Vercel el disco no es persistente.

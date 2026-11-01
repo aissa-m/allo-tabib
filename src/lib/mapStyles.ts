@@ -54,7 +54,7 @@ export function loadHybridSatelliteStyle(): Promise<StyleSpecification> {
           .filter((l): l is Extract<LayerSpecification, { type: "symbol" }> => l.type === "symbol")
           .map((l) => ({
             ...l,
-            paint: { ...l.paint, "text-color": "#EAE6DE", "text-halo-color": "rgba(18,26,34,0.85)", "text-halo-width": 1.4 },
+            paint: { ...l.paint, "text-color": "#F2F1F6", "text-halo-color": "rgba(19,17,31,0.85)", "text-halo-width": 1.4 },
           })),
       ],
     }))

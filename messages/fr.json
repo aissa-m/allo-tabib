@@ -101,7 +101,9 @@
     "invalidCredentials": "Identifiants incorrects",
     "accountLocked": "Trop de tentatives. Réessayez dans 15 minutes.",
     "network": "Problème de connexion",
-    "resetInvalid": "Ce lien n'est plus valable. Demandez-en un nouveau."
+    "resetInvalid": "Ce lien n'est plus valable. Demandez-en un nouveau.",
+    "accountPending": "Votre inscription est en cours de vérification. Vous pourrez vous connecter dès que notre équipe l'aura validée.",
+    "accountRejected": "Votre inscription n'a pas été acceptée. Pour plus d'informations, contactez-nous."
   },
   "home": {
     "title": "Un médecin ou un infirmier chez vous, en un seul appel",
@@ -177,9 +179,12 @@
     "professionalTitle": "Votre profil professionnel",
     "zoneTitle": "Votre zone et vos déplacements",
     "accessTitle": "Sécurisez votre compte",
-    "success": "Compte créé. Bienvenue !",
     "haveAccount": "Déjà inscrit ?",
-    "loginLink": "Se connecter"
+    "loginLink": "Se connecter",
+    "pendingTitle": "Inscription envoyée",
+    "pendingBody": "Notre équipe va vérifier votre profil. Vous pourrez vous connecter et apparaître auprès de l'équipe de coordination dès qu'il sera validé.",
+    "pendingHelp": "Une question ? Appelez-nous au <phone>{number}</phone>.",
+    "backHome": "Retour à l'accueil"
   },
   "fields": {
     "firstName": "Prénom",
@@ -429,5 +434,21 @@
     "homeTitle": "Besoin d'aide pour utiliser la plateforme ?",
     "homeBody": "Consultez le manuel d'utilisation, en français et en arabe.",
     "help": "Besoin d'aide ? Contactez-nous au"
+  },
+  "review": {
+    "tabsLabel": "Statut de l'inscription",
+    "tabAPPROVED": "Validés",
+    "tabPENDING": "En attente",
+    "tabREJECTED": "Refusés",
+    "statusPending": "En attente",
+    "statusRejected": "Refusé",
+    "pendingCount": "{count, plural, one {# inscription à valider} other {# inscriptions à valider}}",
+    "pendingHint": "Inscription à vérifier. Tant qu'elle n'est pas validée, ce professionnel ne peut pas se connecter et n'apparaît pas sur la carte.",
+    "rejectedHint": "Inscription refusée. Ce professionnel ne peut pas se connecter.",
+    "approve": "Valider",
+    "reject": "Refuser",
+    "confirmReject": "Confirmer le refus",
+    "approved": "Inscription validée",
+    "rejected": "Inscription refusée"
   }
 }

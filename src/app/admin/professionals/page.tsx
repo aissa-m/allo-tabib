@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { ProfessionalsDirectory } from "@/components/admin/ProfessionalsDirectory";
@@ -8,5 +9,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function ProfessionalsPage() {
-  return <ProfessionalsDirectory />;
+  // useSearchParams (pestaña de estado) necesita un Suspense para que la página pueda prerenderizarse.
+  return (
+    <Suspense>
+      <ProfessionalsDirectory />
+    </Suspense>
+  );
 }

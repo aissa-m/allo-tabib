@@ -169,9 +169,13 @@ export const professionalsQuerySchema = z.object({
   specialty: csvInts,
   zone: z.coerce.number().int().positive().optional(),
   available: boolParam,
+  status: z.enum(["PENDING", "APPROVED", "REJECTED"]).default("APPROVED"),
   page: z.coerce.number().int().min(1).default(1),
   sort: z.enum(["name", "recent", "availability"]).default("availability"),
 });
+
+/** Decisión del admin sobre el alta de un profesional. */
+export const reviewSchema = z.object({ status: z.enum(["APPROVED", "REJECTED"]) });
 
 /** Convierte los parámetros de URL en objeto, descartando vacíos. */
 export function searchParamsToObject(params: URLSearchParams): Record<string, string> {

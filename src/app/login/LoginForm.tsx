@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { AlertCircle, Eye, EyeOff, KeyRound, LogIn, UserRound } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { FullLogo } from "@/components/ui/Logo";
 import { Button, IconButton } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useErrorText } from "@/lib/hooks";
@@ -23,7 +24,7 @@ export function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const [show, setShow] = useState(false);
-  const [failed, setFailed] = useState<false | "invalid" | "locked">(false);
+  const [failed, setFailed] = useState<false | "invalid" | "locked" | "pending" | "rejected">(false);
   // Hasta que React hidrata el formulario, el botón queda desactivado: así un envío temprano
   // (conexión lenta) nunca hace un envío nativo con la contraseña en la URL.
   const [hydrated, setHydrated] = useState(false);
@@ -47,7 +48,8 @@ export function LoginForm() {
     setFailed(false);
     const res = await signIn("credentials", { ...data, redirect: false });
     if (!res || res.error) {
-      setFailed(res?.code === "locked" ? "locked" : "invalid");
+      const code = res?.code;
+      setFailed(code === "locked" || code === "pending" || code === "rejected" ? code : "invalid");
       return;
     }
     const session = await getSession();
@@ -62,9 +64,7 @@ export function LoginForm() {
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="w-full max-w-sm">
       <GlassCard className="p-6 sm:p-7">
         <div className="mb-6">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate/15 text-slate">
-            <LogIn size={24} strokeWidth={1.5} aria-hidden />
-          </div>
+          <FullLogo name={t("common.appName")} className="mb-5" />
           <h1 className="text-2xl">{t("login.title")}</h1>
           <p className="mt-1 text-sm text-muted">{t("login.subtitle")}</p>
         </div>
@@ -101,9 +101,15 @@ export function LoginForm() {
             </Link>
           </div>
           {failed && (
-            <p role="alert" className="flex items-center gap-2 rounded-xl bg-terra/10 px-3 py-2.5 text-sm text-terra">
-              <AlertCircle size={16} strokeWidth={1.5} aria-hidden />
-              {failed === "locked" ? t("errors.accountLocked") : t("errors.invalidCredentials")}
+            <p role="alert" className="flex items-start gap-2 rounded-xl bg-terra/10 px-3 py-2.5 text-sm text-terra">
+              <AlertCircle size={16} strokeWidth={1.5} aria-hidden className="mt-0.5 shrink-0" />
+              {failed === "locked"
+                ? t("errors.accountLocked")
+                : failed === "pending"
+                  ? t("errors.accountPending")
+                  : failed === "rejected"
+                    ? t("errors.accountRejected")
+                    : t("errors.invalidCredentials")}
             </p>
           )}
           <Button type="submit" block size="lg" icon={LogIn} loading={isSubmitting} disabled={!hydrated}>

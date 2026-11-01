@@ -29,7 +29,7 @@ export function ZonesLayer({ zones, highlightedId = null, onlyId, subtle = true 
   );
   const hl = highlightedId ?? -1;
   // Sobre fondos oscuros (oscuro, satélite) las líneas van en claro para que se vean.
-  const base = resolved === "satellite" ? "#EAE6DE" : dark ? "#6FA8DC" : "#226192";
+  const base = resolved === "satellite" ? "#F2F1F6" : dark ? "#9D8CFF" : "#1800AC";
 
   return (
     <Source id="zones" type="geojson" data={data}>

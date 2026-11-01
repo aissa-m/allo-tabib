@@ -15,8 +15,8 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 export const buttonVariants: Record<ButtonVariant, string> = {
-  primary: "bg-sage text-white shadow-sm hover:bg-sage/90 hover:shadow-md dark:text-[#0E1A26]",
-  slate: "bg-slate text-white shadow-sm hover:bg-slate/90 hover:shadow-md dark:text-[#0E1A26]",
+  primary: "bg-sage text-white shadow-sm hover:bg-sage/90 hover:shadow-md dark:text-[#0D0B1A]",
+  slate: "bg-slate text-white shadow-sm hover:bg-slate/90 hover:shadow-md dark:text-[#0D0B1A]",
   secondary:
     "border border-white/40 bg-white/50 text-ink backdrop-blur-md hover:bg-white/70 dark:border-white/10 dark:bg-white/10 dark:hover:bg-white/15",
   ghost: "text-ink/80 hover:bg-line/5 hover:text-ink",

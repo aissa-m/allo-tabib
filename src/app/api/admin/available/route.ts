@@ -8,7 +8,7 @@ import { distanceMeters, inBbox, parseBbox } from "@/lib/geo";
 
 export const runtime = "nodejs";
 
-/** Profesionales disponibles (o todos, con `all=true`) con los campos de la tarjeta. Solo ADMIN. */
+/** Profesionales validados disponibles (o todos, con `all=true`) con los campos de la tarjeta. Solo ADMIN. */
 export async function GET(req: Request) {
   const r = await requireRole("ADMIN");
   if (r.error) return r.error;
@@ -19,7 +19,8 @@ export async function GET(req: Request) {
 
   await expireStaleAvailability();
 
-  const where: Prisma.ProfessionalWhereInput = q.all ? {} : { isAvailable: true };
+  // Los pendientes de validación o rechazados nunca salen en el mapa.
+  const where: Prisma.ProfessionalWhereInput = q.all ? { status: "APPROVED" } : { status: "APPROVED", isAvailable: true };
   if (q.type) where.type = q.type;
   if (q.specialty.length) where.specialtyId = { in: q.specialty };
   if (q.lang) where.languages = { has: q.lang };

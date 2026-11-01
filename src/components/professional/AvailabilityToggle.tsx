@@ -44,14 +44,14 @@ export function AvailabilityToggle({ available, pending, onToggle }: Props) {
           )}
         >
           <motion.span
-            className="z-10 flex h-[4.25rem] w-[4.25rem] items-center justify-center rounded-full bg-white shadow-lift dark:bg-[#EAE6DE]"
+            className="z-10 flex h-[4.25rem] w-[4.25rem] items-center justify-center rounded-full bg-white shadow-lift dark:bg-[#F2F1F6]"
             animate={{ x }}
             transition={{ type: "spring", stiffness: 420, damping: 30 }}
           >
             {pending ? (
               <Loader2 size={28} strokeWidth={1.5} className="animate-spin text-muted" aria-hidden />
             ) : (
-              <Power size={28} strokeWidth={1.75} className={cn("transition-colors", available ? "text-online" : "text-[#8a8d92]")} aria-hidden />
+              <Power size={28} strokeWidth={1.75} className={cn("transition-colors", available ? "text-online" : "text-[#8B889A]")} aria-hidden />
             )}
           </motion.span>
         </button>

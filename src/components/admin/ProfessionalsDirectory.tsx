@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import { motion } from "framer-motion";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
@@ -8,6 +9,8 @@ import {
   ArrowDownUp,
   ChevronLeft,
   ChevronRight,
+  CircleX,
+  Hourglass,
   LayoutGrid,
   MapPin,
   Phone,
@@ -30,21 +33,24 @@ import { TypeIcon } from "@/components/professional/ProfessionalCard";
 import { useSpecialties, useZones } from "@/lib/hooks";
 import { formatPhone } from "@/lib/phone";
 import { cn, fetcher, fullName, localized, specialtyName, zoneName } from "@/lib/utils";
-import type { ProfessionalDetailDTO, ProfessionalsPage } from "@/lib/types";
+import type { AccountStatus, ProfessionalDetailDTO, ProfessionalsPage } from "@/lib/types";
 
 type View = "grid" | "table";
 const VIEW_KEY = "allotabib.directoryView";
+const STATUSES: AccountStatus[] = ["APPROVED", "PENDING", "REJECTED"];
 
-function StatusBadge({ available, className }: { available: boolean; className?: string }) {
-  const t = useTranslations("status");
-  return available ? (
-    <Badge tone="sage" icon={Power} className={className}>{t("available")}</Badge>
+function StatusBadge({ pro, className }: { pro: ProfessionalDetailDTO; className?: string }) {
+  const t = useTranslations();
+  if (pro.status === "PENDING") return <Badge tone="terra" icon={Hourglass} className={className}>{t("review.statusPending")}</Badge>;
+  if (pro.status === "REJECTED") return <Badge icon={CircleX} className={className}>{t("review.statusRejected")}</Badge>;
+  return pro.isAvailable ? (
+    <Badge tone="sage" icon={Power} className={className}>{t("status.available")}</Badge>
   ) : (
-    <Badge icon={Power} className={className}>{t("unavailable")}</Badge>
+    <Badge icon={Power} className={className}>{t("status.unavailable")}</Badge>
   );
 }
 
-/** Lista de todos los profesionales (solo consulta). */
+/** Lista de profesionales por estado del alta (validados, pendientes, rechazados). */
 export function ProfessionalsDirectory() {
   const t = useTranslations();
   const locale = useLocale();
@@ -52,6 +58,12 @@ export function ProfessionalsDirectory() {
   const { zones } = useZones();
   const { specialties } = useSpecialties();
 
+  // La pestaña va en la URL: el enlace del menú abre /admin/professionals?status=PENDING.
+  const router = useRouter();
+  const pathname = usePathname();
+  const statusParam = useSearchParams().get("status");
+  const status: AccountStatus = STATUSES.find((s) => s === statusParam) ?? "APPROVED";
+  const setStatus = (s: AccountStatus) => router.replace(s === "APPROVED" ? pathname : `${pathname}?status=${s}`, { scroll: false });
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
   const [type, setType] = useState("");
@@ -84,9 +96,9 @@ export function ProfessionalsDirectory() {
     const id = setTimeout(() => setDebouncedQ(q.trim()), 300);
     return () => clearTimeout(id);
   }, [q]);
-  useEffect(() => setPage(1), [debouncedQ, type, specialty, zone, available, sort]);
+  useEffect(() => setPage(1), [status, debouncedQ, type, specialty, zone, available, sort]);
 
-  const params = new URLSearchParams({ page: String(page), sort });
+  const params = new URLSearchParams({ page: String(page), sort, status });
   if (debouncedQ) params.set("q", debouncedQ);
   if (type) params.set("type", type);
   if (specialty) params.set("specialty", specialty);
@@ -96,6 +108,7 @@ export function ProfessionalsDirectory() {
   const { data, isLoading, error } = useSWR<ProfessionalsPage>(`/api/admin/professionals?${params.toString()}`, fetcher, {
     keepPreviousData: true,
   });
+  const { data: pending } = useSWR<{ count: number }>("/api/admin/pending", fetcher);
 
   const zoneLabel = (p: ProfessionalDetailDTO) => (p.isAvailable ? (locale === "ar" ? p.zone.ar : p.zone.fr) : locale === "ar" ? p.homeZone.ar : p.homeZone.fr);
   const filteredSpecialties = specialties.filter((s) => !type || s.type === type);
@@ -112,6 +125,27 @@ export function ProfessionalsDirectory() {
           <IconButton icon={Rows3} label={t("list.viewTable")} variant={view === "table" ? "secondary" : "ghost"} size="sm" aria-pressed={view === "table"} onClick={() => changeView("table")} />
         </div>
       </header>
+
+      <div className="glass mb-3 flex w-fit max-w-full gap-1 overflow-x-auto p-1" role="tablist" aria-label={t("review.tabsLabel")}>
+        {STATUSES.map((s) => (
+          <button
+            key={s}
+            type="button"
+            role="tab"
+            aria-selected={status === s}
+            onClick={() => setStatus(s)}
+            className={cn(
+              "inline-flex h-9 shrink-0 items-center gap-2 rounded-xl px-3 text-sm transition duration-200",
+              status === s ? "bg-sage/15 font-medium text-ink" : "text-ink/75 hover:bg-line/5 hover:text-ink",
+            )}
+          >
+            {t(`review.tab${s}`)}
+            {s === "PENDING" && !!pending?.count && (
+              <span className="min-w-5 rounded-full bg-coral px-1.5 text-center text-xs font-semibold leading-5 text-[#13111F]">{pending.count}</span>
+            )}
+          </button>
+        ))}
+      </div>
 
       <GlassCard className="mb-5 grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-6">
         <Input
@@ -191,7 +225,7 @@ export function ProfessionalsDirectory() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="truncate text-[15px]">{fullName(p)}</h3>
-                      <StatusBadge available={p.isAvailable} className="shrink-0" />
+                      <StatusBadge pro={p} className="shrink-0" />
                     </div>
                     <p className={cn("mt-0.5 flex items-center gap-1.5 text-sm", p.type === "DOCTOR" ? "text-sage" : "text-slate")}>
                       <TypeIcon type={p.type} />
@@ -251,7 +285,7 @@ export function ProfessionalsDirectory() {
                   <td className="px-4 py-2.5">{localized(p.specialty, locale)}</td>
                   <td className="px-4 py-2.5">{zoneLabel(p)}</td>
                   <td className="px-4 py-2.5" dir="ltr">{formatPhone(p.phone)}</td>
-                  <td className="px-4 py-2.5"><StatusBadge available={p.isAvailable} /></td>
+                  <td className="px-4 py-2.5"><StatusBadge pro={p} /></td>
                   <td className="px-4 py-2.5 text-muted">{format.dateTime(new Date(p.createdAt), { dateStyle: "medium" })}</td>
                 </tr>
               ))}

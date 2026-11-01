@@ -11,10 +11,19 @@ const MAX_FAILED_LOGINS = 5;
 const LOCK_MS = 15 * 60 * 1000;
 /** Hash de relleno: con un usuario inexistente se tarda lo mismo (no se delata qué números existen). */
 const DUMMY_HASH = bcrypt.hashSync("dummy-password", 10);
+const userStatus = { professional: { select: { status: true } } } as const;
 
 /** Cuenta bloqueada por demasiados intentos: el cliente lo recibe como `code: "locked"`. */
 class AccountLocked extends CredentialsSignin {
   code = "locked";
+}
+/** Profesional aún sin validar por un admin. */
+class AccountPending extends CredentialsSignin {
+  code = "pending";
+}
+/** Profesional rechazado por un admin. */
+class AccountRejected extends CredentialsSignin {
+  code = "rejected";
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -31,8 +40,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const { identifier, password } = parsed.data;
 
         const user = identifier.includes("@")
-          ? await prisma.user.findUnique({ where: { email: identifier.toLowerCase() } })
-          : await prisma.user.findUnique({ where: { phone: normalizePhone(identifier) } });
+          ? await prisma.user.findUnique({ where: { email: identifier.toLowerCase() }, include: userStatus })
+          : await prisma.user.findUnique({ where: { phone: normalizePhone(identifier) }, include: userStatus });
         if (!user) {
           await bcrypt.compare(password, DUMMY_HASH);
           return null;
@@ -53,6 +62,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (user.failedLogins || user.lockedUntil) {
           await prisma.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null } });
         }
+        // Solo tras acertar la contraseña: así no se delata el estado de una cuenta ajena.
+        if (user.professional?.status === "PENDING") throw new AccountPending();
+        if (user.professional?.status === "REJECTED") throw new AccountRejected();
 
         return { id: user.id, role: user.role, email: user.email };
       },
